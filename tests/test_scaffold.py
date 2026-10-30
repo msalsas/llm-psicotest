@@ -1,5 +1,7 @@
 import unittest
 
+import _bootstrap
+
 import psicotest.cli
 
 

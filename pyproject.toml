@@ -9,7 +9,7 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["ruff==0.8.6"]
+dev = ["ruff==0.17.1"]
 
 [project.scripts]
 psicotest = "psicotest.cli:main"
@@ -22,4 +22,13 @@ target-version = "py311"
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B"]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "TID"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"random".msg = "use psicotest.rng"
+
+[tool.ruff.lint.isort]
+known-first-party = ["psicotest"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401"]

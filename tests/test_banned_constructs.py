@@ -116,6 +116,8 @@ class TestBannedConstructs(unittest.TestCase):
         paths = _scan_paths()
         self.assertIn(ROOT / "src" / "psicotest" / "rng.py", paths)
         self.assertIn(ROOT / "src" / "psicotest" / "spec.py", paths)
+        self.assertIn(ROOT / "src" / "psicotest" / "checkers" / "extract.py", paths)
+        self.assertIn(ROOT / "src" / "psicotest" / "checkers" / "rules.py", paths)
         all_violations = []
         for p in paths:
             all_violations.extend(find_violations(p.read_text("utf-8"), str(p)))

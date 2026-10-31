@@ -104,7 +104,7 @@ def _scan_paths():
         p = ROOT / "src" / "psicotest" / name
         if p.exists():
             paths.append(p)
-    for sub in ("generators", "checkers"):
+    for sub in ("generators", "checkers", "runner"):
         d = ROOT / "src" / "psicotest" / sub
         if d.exists():
             paths.extend(sorted(d.rglob("*.py")))

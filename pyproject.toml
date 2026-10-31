@@ -32,3 +32,4 @@ known-first-party = ["psicotest"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["F401"]
+"src/psicotest/generators/__init__.py" = ["RUF022"]

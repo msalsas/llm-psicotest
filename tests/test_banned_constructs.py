@@ -118,6 +118,8 @@ class TestBannedConstructs(unittest.TestCase):
         self.assertIn(ROOT / "src" / "psicotest" / "spec.py", paths)
         self.assertIn(ROOT / "src" / "psicotest" / "checkers" / "extract.py", paths)
         self.assertIn(ROOT / "src" / "psicotest" / "checkers" / "rules.py", paths)
+        self.assertIn(ROOT / "src" / "psicotest" / "generators" / "core.py", paths)
+        self.assertIn(ROOT / "src" / "psicotest" / "generators" / "csp_perm.py", paths)
         all_violations = []
         for p in paths:
             all_violations.extend(find_violations(p.read_text("utf-8"), str(p)))

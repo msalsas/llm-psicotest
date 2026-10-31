@@ -16,7 +16,19 @@ from psicotest.spec import Item
 
 LABEL_RE = re.compile(r"^[A-Z][A-Z0-9]?$")
 NAME_RE = re.compile(r"^[^\W\d_]+$")
-GENERIC_ASK_WORDS = ("dato", "datos", "falta", "informacion", "valor", "cuanto", "cual", "que")
+GENERIC_ASK_WORDS = (
+    "data",
+    "datum",
+    "how",
+    "info",
+    "information",
+    "many",
+    "missing",
+    "much",
+    "value",
+    "what",
+    "which",
+)
 
 
 def _family(family: str) -> str:

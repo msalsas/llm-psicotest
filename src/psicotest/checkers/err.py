@@ -4,8 +4,8 @@ from psicotest.checkers import schema
 from psicotest.checkers.common import make_result, r2_flag, reasoning_flags
 from psicotest.checkers.extract import parse_number
 
-STEP_RE = re.compile(r"PASO\s*[:=]?\s*(\d+)", re.IGNORECASE)
-VALUE_RE = re.compile(r"VALOR\s*[:=]?\s*([+-]?\d(?:[\d.,]*\d)?)", re.IGNORECASE)
+STEP_RE = re.compile(r"STEP\s*[:=]?\s*(\d+)", re.IGNORECASE)
+VALUE_RE = re.compile(r"VALUE\s*[:=]?\s*([+-]?\d(?:[\d.,]*\d)?)", re.IGNORECASE)
 
 
 def check_err(content, finish_reason, reasoning, item):

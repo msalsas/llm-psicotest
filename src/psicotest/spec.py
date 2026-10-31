@@ -10,7 +10,7 @@ from psicotest.rng import Rng
 VARIANTS = ("base", "clean", "relabel")
 GENERATOR_NAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 FAMILY_RE = re.compile(r"^[A-Z][A-Z0-9]*$")
-ANIMAL_RE = re.compile(r"^[a-záéíóúüñ]+$")
+ANIMAL_RE = re.compile(r"^[a-z]+$")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -33,7 +33,7 @@ class Item:
     instance_seed: int
     surface_seed: int
     animal: str | None
-    prompt_es: str
+    prompt_en: str
     key: Mapping[str, object]
     meta: Mapping[str, object]
     answer_kind: str
@@ -54,7 +54,7 @@ class Turn:
     turn: int
     kind: str
     slot: str | None
-    prompt_es: str
+    prompt_en: str
     item: Item | None
     rules_active: tuple[str, ...]
     r3_trigger: bool

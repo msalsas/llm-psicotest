@@ -19,10 +19,10 @@ def drive(server, turns, upto=30):
         for j in range(1, k):
             t = turns[j - 1]
             ans = fakes.ANSWERS[server.persona](t)
-            messages.append({"role": "user", "content": t.prompt_es})
+            messages.append({"role": "user", "content": t.prompt_en})
             messages.append({"role": "assistant", "content": ans.content})
         tk = turns[k - 1]
-        messages.append({"role": "user", "content": tk.prompt_es})
+        messages.append({"role": "user", "content": tk.prompt_en})
         body = {"model": server.model, "messages": messages}
         status, resp = server.handle("POST", "/v1/chat/completions", AUTH, body)
         out.append((tk, status, resp))
@@ -147,7 +147,7 @@ class TestFakesSmoke(unittest.TestCase):
             self.assertNotEqual(result.outcome, "WRONG")
             self.assertEqual(rules, {"R1": "NA", "R2": "NA", "R3": "NA", "R3_NOTE": ""})
             self.assertEqual(resp["choices"][0]["finish_reason"], "length")
-            self.assertNotIn("RESPUESTA", resp["choices"][0]["message"]["content"])
+            self.assertNotIn("ANSWER", resp["choices"][0]["message"]["content"])
 
     def test_reasoner_only(self):
         for turn, status, resp in scored("reasoner_only"):
@@ -231,7 +231,34 @@ class TestFakesSmoke(unittest.TestCase):
             self.assertEqual(fakes.ANSWERS["oracle"](t), fakes.oracle_answer(t))
             self.assertIsInstance(fakes.oracle_answer(t), fakes.FakeAnswer)
         t7 = TURNS[6]
-        self.assertTrue(fakes.ANSWERS["premise_believer"](t7).content.endswith("RESPUESTA: 426"))
+        self.assertTrue(fakes.ANSWERS["premise_believer"](t7).content.endswith("ANSWER: 426"))
+
+    def test_fake_strings_english(self):
+        from decimal import Decimal
+
+        self.assertEqual(fakes.ORACLE_PREAMBLE, "I solve the problem and check the result.")
+        self.assertEqual(
+            fakes.RCL_ORACLE,
+            "- The last line is ANSWER: <value>, exactly once.\n"
+            "- Decimals with a decimal point, no thousands separator and no units.\n"
+            "- If the problem mentions an animal, add an ANIMAL line before ANSWER.\n"
+            "- If an essential datum is missing, reply only with CLARIFICATION.\n"
+            "ANSWER: 4",
+        )
+        self.assertEqual(fakes.format_en(Decimal("12.35")), "12.35")
+        self.assertEqual(fakes.format_en(Decimal("3.50")), "3.50")
+        self.assertEqual(fakes.format_en(1234), "1234")
+        self.assertFalse(hasattr(fakes, "format_" + "es"))
+        t5, t8 = TURNS[4], TURNS[7]
+        self.assertEqual(
+            fakes.oracle_reasoning(t5),
+            "I work through turn 5 step by step and check every operation before replying.",
+        )
+        self.assertEqual(
+            fakes.ANSWERS["all_asker"](t5).content,
+            "CLARIFICATION: Which datum is missing?",
+        )
+        self.assertEqual(fakes.oracle_answer(t8).content, "CLARIFICATION: What is the price?")
 
 
 if __name__ == "__main__":

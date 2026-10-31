@@ -12,13 +12,13 @@ from psicotest.checkers.extract import CLAR_LINE_RE, parse_scalar
 from psicotest.checkers.text import has_phrase, words
 
 RCL_KEYWORDS = {
-    "R1": (("respuesta",), ("ultima", "linea")),
-    "R2": (("coma",), ("decimal",), ("decimales",), ("miles",), ("unidades",)),
-    "R3": (("animal",), ("animales",)),
-    "PROTO": (("aclaracion",), ("dato",), ("datos",)),
+    "R1": (("answer",), ("last", "line")),
+    "R2": (("decimal",), ("decimals",), ("thousands",), ("units",)),
+    "R3": (("animal",), ("animals",)),
+    "PROTO": (("clarification",), ("datum",), ("data",)),
 }
 ITEM_RE = re.compile(r"^\s*(?:[-*\u2022]|\d{1,2}[.)])\s+(.+)$")
-ANSWERED_RE = re.compile(r"RESPUESTA\s*:", re.IGNORECASE)
+ANSWERED_RE = re.compile(r"ANSWER\s*:", re.IGNORECASE)
 
 
 def check_amb(content, finish_reason, reasoning, item):

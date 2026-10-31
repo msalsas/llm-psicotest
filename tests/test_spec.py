@@ -18,8 +18,8 @@ from psicotest.spec import (
 )
 
 ITEM = Item(
-    "v1/S01/10001",
-    "v1",
+    "v2/S01/10001",
+    "v2",
     "S01",
     "ST",
     "gen_state_boxes",
@@ -29,7 +29,7 @@ ITEM = Item(
     5,
     7,
     None,
-    "Caja A: 3.",
+    "Problem A.",
     {"A": 5},
     {},
     "keys",
@@ -37,10 +37,10 @@ ITEM = Item(
 )
 
 ITEM_BYTES = (
-    b'{"animal":null,"answer_kind":"keys","battery_version":"v1","capability":true,"family":"ST",'
+    b'{"animal":null,"answer_kind":"keys","battery_version":"v2","capability":true,"family":"ST",'
     b'"generator":"gen_state_boxes","generator_version":1,"instance_seed":5,'
-    b'"item_id":"v1/S01/10001","key":{"A":5},"knobs":{"boxes":6,"ops":30},'
-    b'"meta":{},"prompt_es":"Caja A: 3.","slot":"S01","surface_seed":7,"variant":"base"}'
+    b'"item_id":"v2/S01/10001","key":{"A":5},"knobs":{"boxes":6,"ops":30},'
+    b'"meta":{},"prompt_en":"Problem A.","slot":"S01","surface_seed":7,"variant":"base"}'
 )
 
 
@@ -48,20 +48,21 @@ class TestSpec(unittest.TestCase):
     def test_canonical_json_bytes(self):
         obj = {
             "b": [1, Decimal("1.50"), Fraction(-3, 4)],
-            "a": "ñ",
+            "a": "\u00f1",
             "c": None,
             "d": True,
             "e": (2, 3),
             "f": 2**64,
         }
         expected = (
-            '{"a":"ñ","b":[1,"1.50","-3/4"],"c":null,"d":true,"e":[2,3],"f":18446744073709551616}'
+            '{"a":"\u00f1","b":[1,"1.50","-3/4"],"c":null,"d":true,"e":[2,3],'
+            '"f":18446744073709551616}'
         ).encode()
         self.assertEqual(canonical_json(obj), expected)
 
     def test_canonical_json_key_order_unicode(self):
-        obj = {"é": 1, "z": 2, "Z": 3, "n": {"y": 1, "x": 2}}
-        expected = '{"Z":3,"n":{"x":2,"y":1},"z":2,"é":1}'.encode()
+        obj = {"\u00e9": 1, "z": 2, "Z": 3, "n": {"y": 1, "x": 2}}
+        expected = '{"Z":3,"n":{"x":2,"y":1},"z":2,"\u00e9":1}'.encode()
         self.assertEqual(canonical_json(obj), expected)
 
     def test_decimal_fraction_serialization(self):
@@ -92,7 +93,8 @@ class TestSpec(unittest.TestCase):
         )
         self.assertEqual(
             canonical_json(Turn(2, "item", "S01", "x", None, ("R1", "R2"), False)),
-            b'{"item":null,"kind":"item","prompt_es":"x","r3_trigger":false,"rules_active":["R1","R2"],"slot":"S01","turn":2}',
+            b'{"item":null,"kind":"item","prompt_en":"x","r3_trigger":false,'
+            b'"rules_active":["R1","R2"],"slot":"S01","turn":2}',
         )
         self.assertEqual(canonical_json(ITEM), ITEM_BYTES)
 
@@ -106,8 +108,8 @@ class TestSpec(unittest.TestCase):
         self.assertEqual(item_key("gen_state_boxes", 1, 42, "base"), "gen_state_boxes@1/42/base")
         self.assertEqual(item_key("gen_gsm_noop", 3, 0, "clean"), "gen_gsm_noop@3/0/clean")
         self.assertEqual(
-            item_key("gen_state_boxes", 1, 42, "base", "oveja"),
-            "gen_state_boxes@1/42/base/animal=oveja",
+            item_key("gen_state_boxes", 1, 42, "base", "sheep"),
+            "gen_state_boxes@1/42/base/animal=sheep",
         )
 
     def test_item_key_rejects(self):
@@ -118,7 +120,7 @@ class TestSpec(unittest.TestCase):
             ("gen_x", 1, -1, "base"),
             ("gen_x", 1, True, "base"),
             ("gen_x", 1, 1, "mirror"),
-            ("gen_x", 1, 1, "base", "Oveja"),
+            ("gen_x", 1, 1, "base", "Sheep"),
             ("gen_x", 1, 1, "base", ""),
         ]
         for case in cases:
@@ -147,7 +149,7 @@ class TestSpec(unittest.TestCase):
     def test_generator_spec_key(self):
         spec = GeneratorSpec("gen_gsm_noop", 2, "NOOP", ("base", "clean"))
         self.assertEqual(spec.key(5, "clean"), "gen_gsm_noop@2/5/clean")
-        self.assertEqual(spec.key(5, animal="oveja"), "gen_gsm_noop@2/5/base/animal=oveja")
+        self.assertEqual(spec.key(5, animal="sheep"), "gen_gsm_noop@2/5/base/animal=sheep")
         with self.assertRaises(ValueError):
             spec.key(5, "relabel")
 

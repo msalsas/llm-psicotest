@@ -22,13 +22,13 @@ PERSONAS = (
 )
 CRASH_TURN = 12
 SHRINK_TURN = 6
-ORACLE_PREAMBLE = "Resuelvo el enunciado y compruebo el resultado."
+ORACLE_PREAMBLE = "I solve the problem and check the result."
 RCL_ORACLE = (
-    "- La última línea es RESPUESTA: <valor>, una sola vez.\n"
-    "- Decimales con coma, sin separador de miles y sin unidades.\n"
-    "- Si el enunciado menciona un animal, añade una línea ANIMAL antes de RESPUESTA.\n"
-    "- Si falta un dato imprescindible, responde solo con ACLARACION.\n"
-    "RESPUESTA: 4"
+    "- The last line is ANSWER: <value>, exactly once.\n"
+    "- Decimals with a decimal point, no thousands separator and no units.\n"
+    "- If the problem mentions an animal, add an ANIMAL line before ANSWER.\n"
+    "- If an essential datum is missing, reply only with CLARIFICATION.\n"
+    "ANSWER: 4"
 )
 PROPS_BODY = {"default_generation_settings": {"n_ctx": 32768}, "model_path": "/models/fake.gguf"}
 
@@ -40,10 +40,10 @@ class FakeAnswer:
     finish_reason: str
 
 
-def format_es(x: int | Decimal) -> str:
+def format_en(x: int | Decimal) -> str:
     if isinstance(x, int):
         return str(x)
-    return format(x, "f").replace(".", ",")
+    return format(x, "f")
 
 
 def oracle_value(turn: Turn) -> str:
@@ -59,26 +59,28 @@ def oracle_value(turn: Turn) -> str:
         agents = item.meta["agents"]
         roles = key["roles"]
         parts = []
-        for role, label in (("knight", "caballeros"), ("knave", "bribones"), ("spy", "espía")):
+        for role, label in (("knight", "knights"), ("knave", "knaves"), ("spy", "spy")):
             names = ", ".join(a for a in agents if roles[a] == role)
-            parts.append(f"{label}: {names if names else 'ninguno'}")
+            parts.append(f"{label}: {names if names else 'none'}")
         return "; ".join(parts)
     if family == "ERR":
-        return f"PASO {key['step']}; VALOR {format_es(key['value'])}"
-    return format_es(key["value"])
+        return f"STEP {key['step']}; VALUE {format_en(key['value'])}"
+    return format_en(key["value"])
 
 
 def oracle_reasoning(turn: Turn) -> str:
-    return f"Analizo el turno {turn.turn} paso a paso y verifico cada operación antes de responder."
+    return (
+        f"I work through turn {turn.turn} step by step and check every operation before replying."
+    )
 
 
 def _oracle_content(turn: Turn, value: str | None = None) -> str:
     kind = turn.kind
     item = turn.item
     if kind == "setup":
-        return "RESPUESTA: OK"
+        return "ANSWER: OK"
     if kind == "amb_ask":
-        return f"ACLARACION: ¿Cuál es el dato de {item.meta['synonyms'][0]}?"
+        return f"CLARIFICATION: What is the {item.meta['synonyms'][0]}?"
     if kind == "recall":
         return RCL_ORACLE
     if value is None:
@@ -86,7 +88,7 @@ def _oracle_content(turn: Turn, value: str | None = None) -> str:
     lines = [ORACLE_PREAMBLE]
     if turn.r3_trigger:
         lines.append(f"ANIMAL: {item.animal}")
-    lines.append(f"RESPUESTA: {value}")
+    lines.append(f"ANSWER: {value}")
     return "\n".join(lines)
 
 
@@ -100,7 +102,7 @@ def persona_answer(persona: str, turn: Turn) -> FakeAnswer:
     if persona in ("oracle", "crasher", "auth_reject", "ctx_shrink", "no_props", "with_props"):
         return oracle_answer(turn)
     if persona == "all_asker":
-        return FakeAnswer("ACLARACION: ¿Qué dato falta?", oracle_reasoning(turn), "stop")
+        return FakeAnswer("CLARIFICATION: Which datum is missing?", oracle_reasoning(turn), "stop")
     if persona == "premise_believer":
         value = None
         if turn.item is not None and turn.item.family == "FPRE":

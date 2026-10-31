@@ -14,24 +14,24 @@ class TestCheckersLOG(unittest.TestCase):
         return CHECKERS["LOG"](content, "stop", None, item)
 
     def test_log_case1(self):
-        r = self.call("RESPUESTA: caballeros: A, C; bribones: B y E")
+        r = self.call("ANSWER: knights: A, C; knaves: B and E")
         self.assertEqual(r.outcome, "OK")
         self.assertEqual(r.detail, "complement")
-        r = self.call("RESPUESTA: caballeros: A, C")
+        r = self.call("ANSWER: knights: A, C")
         self.assertEqual(r.outcome, "AMBIG")
         self.assertEqual(r.detail, "underdetermined")
 
     def test_log_case2(self):
-        r = self.call("RESPUESTA: todos menos B y D son caballeros")
+        r = self.call("ANSWER: all except B and D are knights")
         self.assertEqual(r.outcome, "AMBIG")
         self.assertEqual(r.detail, "no_structure")
 
     def test_log_case3(self):
-        r = self.call("RESPUESTA: caballeros: A, C; bribones: B, D; espía: E")
+        r = self.call("ANSWER: knights: A, C; knaves: B, D; spy: E")
         self.assertEqual(r.outcome, "WRONG")
 
     def test_log_ok_full(self):
-        r = self.call("RESPUESTA: Caballeros: A y C; Bribones: B, E; Espía: D")
+        r = self.call("ANSWER: Knights: A and C; Knaves: B, E; Spy: D")
         self.assertEqual(r.outcome, "OK")
         self.assertEqual(
             r.value,
@@ -39,29 +39,29 @@ class TestCheckersLOG(unittest.TestCase):
         )
 
     def test_log_conflict(self):
-        r = self.call("RESPUESTA: caballeros: A, C; bribones: A, B, E; espía: D")
+        r = self.call("ANSWER: knights: A, C; knaves: A, B, E; spy: D")
         self.assertEqual(r.outcome, "AMBIG")
         self.assertEqual(r.detail, "conflict:A")
 
     def test_log_unknown_name_order(self):
-        r = self.call("RESPUESTA: caballeros: A, C; bribones: A, B, E; espía: X")
+        r = self.call("ANSWER: knights: A, C; knaves: A, B, E; spy: X")
         self.assertEqual(r.outcome, "AMBIG")
         self.assertEqual(r.detail, "unknown_name:x")
 
     def test_log_uppercase_y(self):
-        r = self.call("RESPUESTA: Caballeros: A Y C")
+        r = self.call("ANSWER: Knights: A AND C")
         self.assertEqual(r.outcome, "AMBIG")
         self.assertEqual(r.detail, "underdetermined")
-        r = self.call("RESPUESTA: Caballeros: A Y C; Bribones: B Y E; Espía: D")
+        r = self.call("ANSWER: Knights: A AND C; Knaves: B AND E; Spy: D")
         self.assertEqual(r.outcome, "OK")
 
     def test_log_unknown_role(self):
-        r = self.call("RESPUESTA: magos: A")
+        r = self.call("ANSWER: wizards: A")
         self.assertEqual(r.outcome, "AMBIG")
         self.assertEqual(r.detail, "unknown_role")
 
     def test_log_noans(self):
-        r = self.call("RESPUESTA: no lo sé")
+        r = self.call("ANSWER: I don't know")
         self.assertEqual(r.outcome, "NOANS")
 
     def test_log_gen_bug(self):
@@ -70,7 +70,7 @@ class TestCheckersLOG(unittest.TestCase):
             {"roles": {"A": "knight", "B": "knave", "C": "knight", "D": "spy"}},
             {"agents": ["A", "B", "C", "D", "E"]},
         )
-        r = self.call("RESPUESTA: caballeros: A, C; bribones: B; espía: D", item)
+        r = self.call("ANSWER: knights: A, C; knaves: B; spy: D", item)
         self.assertEqual(r.outcome, "GEN_BUG")
         self.assertEqual(r.detail, "key_invalid")
 
@@ -81,7 +81,27 @@ class TestCheckersLOG(unittest.TestCase):
             {"agents": ["A", "B", ["C"], "D", "E"]},
         )
         with self.assertRaises(ItemSchemaError):
-            self.call("RESPUESTA: caballeros: A, C", item)
+            self.call("ANSWER: knights: A, C", item)
+
+    def test_log_role_words(self):
+        from psicotest.checkers.logic import NONE_WORDS, ROLE_WORDS
+
+        self.assertEqual(
+            ROLE_WORDS,
+            {
+                "knight": "knight",
+                "knights": "knight",
+                "knave": "knave",
+                "knaves": "knave",
+                "spy": "spy",
+                "spies": "spy",
+            },
+        )
+        self.assertEqual(NONE_WORDS, ("none", "nobody", "no one"))
+        self.assertEqual(self.call("ANSWER: knaves: B, and E; knights: A, C; spy: D").outcome, "OK")
+        r = self.call("ANSWER: caball" + "eros: A, C; bribo" + "nes: B, E; esp" + "ia: D")
+        self.assertEqual(r.outcome, "AMBIG")
+        self.assertEqual(r.detail, "unknown_role")
 
 
 if __name__ == "__main__":

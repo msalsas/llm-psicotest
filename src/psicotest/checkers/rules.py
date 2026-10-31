@@ -6,7 +6,21 @@ from psicotest.checkers.text import ARTICLES, fold
 from psicotest.spec import Turn
 
 ANIMAL_LINE_RE = re.compile(r"^\s*ANIMAL\s*:\s*(.*?)\s*\.?\s*$", re.IGNORECASE)
-PLURAL_EXCEPTIONS: dict[str, str] = {}
+PLURAL_EXCEPTIONS = {
+    "bison": "bison",
+    "deer": "deer",
+    "feet": "foot",
+    "fish": "fish",
+    "geese": "goose",
+    "lice": "louse",
+    "mice": "mouse",
+    "moose": "moose",
+    "octopi": "octopus",
+    "oxen": "ox",
+    "salmon": "salmon",
+    "sheep": "sheep",
+    "teeth": "tooth",
+}
 
 
 def singular_candidates(word: str) -> tuple[str, ...]:
@@ -16,7 +30,9 @@ def singular_candidates(word: str) -> tuple[str, ...]:
         w,
         w[:-1] if w.endswith("s") else None,
         w[:-2] if w.endswith("es") else None,
-        w[:-3] + "z" if w.endswith("ces") else None,
+        w[:-3] + "y" if w.endswith("ies") else None,
+        w[:-3] + "f" if w.endswith("ves") else None,
+        w[:-3] + "fe" if w.endswith("ves") else None,
         PLURAL_EXCEPTIONS.get(w),
     ):
         if cand is not None and cand != "" and cand not in out:

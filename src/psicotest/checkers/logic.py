@@ -5,16 +5,16 @@ from psicotest.checkers.common import make_result, reasoning_flags, resolve
 from psicotest.checkers.text import fold, words
 
 ROLE_WORDS = {
-    "caballero": "knight",
-    "caballeros": "knight",
-    "bribon": "knave",
-    "bribones": "knave",
-    "espia": "spy",
-    "espias": "spy",
+    "knight": "knight",
+    "knights": "knight",
+    "knave": "knave",
+    "knaves": "knave",
+    "spy": "spy",
+    "spies": "spy",
 }
-NONE_WORDS = ("ninguno", "ninguna", "nadie")
+NONE_WORDS = ("none", "nobody", "no one")
 SEG_RE = re.compile(r"^([^:]+):(.*)$")
-SPLIT_NAMES_RE = re.compile(r"\s*,\s*|\s+y\s+|\s+e\s+")
+SPLIT_NAMES_RE = re.compile(r"\s*,\s*(?:and\s+)?|\s+and\s+")
 ROLES = ("knight", "knave", "spy")
 
 

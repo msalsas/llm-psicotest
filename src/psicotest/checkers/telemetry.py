@@ -6,12 +6,12 @@ from psicotest.checkers.cjk import LEAK_CLASSES, count_cjk
 LOOP_WIDTH = 64
 LOOP_REPEATS = 5
 SELFCORR = (
-    ("espera", re.compile(r"(?<![^\W_])espera(?![^\W_])")),
     ("wait", re.compile(r"(?<![^\W_])wait(?![^\W_])")),
-    ("corrijo", re.compile(r"(?<![^\W_])corrijo(?![^\W_])")),
-    ("en_realidad", re.compile(r"(?<![^\W_])en\s+realidad(?![^\W_])")),
-    ("me_equivoque", re.compile(r"(?<![^\W_])me\s+equivoqu[eé](?![^\W_])")),
-    ("error_mio", re.compile(r"(?<![^\W_])error\s+m[ií]o(?![^\W_])")),
+    ("actually", re.compile(r"(?<![^\W_])actually(?![^\W_])")),
+    ("let_me_correct", re.compile(r"(?<![^\W_])let\s+me\s+correct(?![^\W_])")),
+    ("i_made_a_mistake", re.compile(r"(?<![^\W_])i\s+made\s+a\s+mistake(?![^\W_])")),
+    ("my_mistake", re.compile(r"(?<![^\W_])my\s+mistake(?![^\W_])")),
+    ("on_second_thought", re.compile(r"(?<![^\W_])on\s+second\s+thought(?![^\W_])")),
 )
 
 

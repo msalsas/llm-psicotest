@@ -10,6 +10,7 @@ from psicotest.rng import MASK64, Rng, derive_item_seed, derive_seed, splitmix64
 
 ROOT = Path(__file__).resolve().parents[1]
 GOLDEN = json.loads((ROOT / "tests/golden/rng.json").read_text("utf-8"))
+RNG_JSON_SHA256 = "bdbffbc8a18000126af26594309e91a8aaa32ca73719f8041c5f7cfbcfc391f0"
 
 PIN_SEED1_FIRST = 0x910A2DEC89025CC1
 PIN_SEEDMAX_FIRST = 0xE4D971771B652C20
@@ -233,9 +234,9 @@ class TestRng(unittest.TestCase):
             ),
         )
         self.assertEqual(
-            derive_seed("ñandú", 0),
+            derive_seed("\u00f1and\u00fa", 0),
             int.from_bytes(
-                hashlib.sha256("ñandú\x1f0".encode()).digest()[:8],
+                hashlib.sha256("\u00f1and\u00fa\x1f0".encode()).digest()[:8],
                 "big",
             ),
         )
@@ -248,7 +249,7 @@ class TestRng(unittest.TestCase):
                 ["psicotest", "v1", "S01", "gen_state_boxes", 1, 10001, "surface"],
                 ["psicotest", "v1", 10001, "A", 17, "animal"],
                 ["req", "v1", 10001, "A", 2],
-                ["ñandú", 0],
+                ["\u00f1and\u00fa", 0],
                 [""],
                 ["abc"],
             ],
@@ -284,6 +285,12 @@ class TestRng(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             derive_item_seed("v1", "S01", "gen_state_boxes", 1, 10001, "animal")
+
+    def test_rng_golden_file_frozen(self):
+        self.assertEqual(
+            hashlib.sha256((ROOT / "tests/golden/rng.json").read_bytes()).hexdigest(),
+            RNG_JSON_SHA256,
+        )
 
 
 if __name__ == "__main__":

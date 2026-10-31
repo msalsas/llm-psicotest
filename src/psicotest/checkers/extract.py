@@ -5,21 +5,22 @@ from decimal import Decimal
 
 from psicotest.checkers.text import NUMBER_WORDS, fold
 
-RESP_LINE_RE = re.compile(r"^\s*RESPUESTA\s*:\s*(.+?)\s*\.?\s*$", re.IGNORECASE)
-CLAR_LINE_RE = re.compile(r"^\s*ACLARACI[OÓ]N\s*:\s*(.*?)\s*$", re.IGNORECASE)
+RESP_LINE_RE = re.compile(r"^\s*ANSWER\s*:\s*(.+?)\s*\.?\s*$", re.IGNORECASE)
+CLAR_LINE_RE = re.compile(r"^\s*CLARIFICATION\s*:\s*(.*?)\s*$", re.IGNORECASE)
 BOXED_RE = re.compile(r"\\boxed\{([^{}]*)\}")
 NUM_TOKEN_RE = re.compile(r"(?<![\w.,])[+-]?\d(?:[\d.,]*\d)?(?!\w)")
 NUM_ANY_RE = re.compile(r"\d(?:[\d.,]*\d)?")
 NUM_BODY_RE = re.compile(r"([+-]?)(\d(?:[\d.,]*\d)?)")
 PAREN_TAIL_RE = re.compile(r"\s*\(([^()]*)\)\s*$")
-APPROX_RE = re.compile(r"^(?:\u2248|~|aprox(?:\.|imadamente)?)\s*", re.IGNORECASE)
+APPROX_RE = re.compile(r"^(?:\u2248|~|approx(?:\.|imately)?)\s*", re.IGNORECASE)
 SCI_RE = re.compile(
     r"([+-]?\d(?:[\d.,]*\d)?)\s*[x\u00d7*\u00b7]\s*10\s*\^\s*([+-]?\d{1,3})",
     re.IGNORECASE,
 )
 LEAD_NUM_RE = re.compile(r"([\u20ac\u00a3]\s*)?([+-]?\d(?:[\d.,]*\d)?)\s*(.*)")
 UNIT_TAIL_RE = re.compile(
-    r"(?:[^\W\d_]+\.?|[\u20ac\u00a3%\u00b0\u00ba/])(?:\s*(?:[^\W\d_]+\.?|[\u20ac\u00a3%\u00b0\u00ba/]))*"
+    r"(?:[^\W\d_]+\.?|[\u20ac\u00a3%\u00b0\u00ba/])"
+    r"(?:\s*(?:[^\W\d_]+\.?|[\u20ac\u00a3%\u00b0\u00ba/]))*"
 )
 
 
@@ -103,17 +104,17 @@ def parse_number(s: str) -> tuple[Decimal | None, set[str]]:
         if th in f or not thousands(th, i):
             return None, set()
         return dec_of(i.replace(th, ""), f), {"R2_FAIL"}
-    if has_comma:
-        parts = body.split(",")
+    if has_dot:
+        parts = body.split(".")
         if len(parts) == 2:
             return dec_of(parts[0], parts[1]), set()
-        if thousands(",", body):
-            return dec_of(body.replace(",", ""), ""), {"R2_FAIL"}
-        return None, set()
-    if has_dot:
         if thousands(".", body):
             return dec_of(body.replace(".", ""), ""), {"R2_FAIL"}
-        parts = body.split(".")
+        return None, set()
+    if has_comma:
+        if thousands(",", body):
+            return dec_of(body.replace(",", ""), ""), {"R2_FAIL"}
+        parts = body.split(",")
         if len(parts) == 2:
             return dec_of(parts[0], parts[1]), {"R2_FAIL", "FMT"}
         return None, set()

@@ -3,7 +3,7 @@ import unittest
 import _bootstrap
 
 from psicotest.checkers.cjk import cjk_class, count_cjk
-from psicotest.checkers.telemetry import has_loop, measure, selfcorr_counts
+from psicotest.checkers.telemetry import SELFCORR, has_loop, measure, selfcorr_counts
 from psicotest.spec import canonical_json
 
 
@@ -73,8 +73,8 @@ class TestTelemetry(unittest.TestCase):
             (0x31350, "han"),
             (0x3FFFF, "han"),
             (0x40000, None),
-            ("ñ", None),
-            ("¿", None),
+            ("\u00f1", None),
+            ("\u00bf", None),
             ("\u20ac", None),
             ("\u00d7", None),
         ]
@@ -86,23 +86,48 @@ class TestTelemetry(unittest.TestCase):
 
     def test_selfcorr_markers(self):
         counts = selfcorr_counts(
-            "Espera, en realidad me equivoqué. Wait. corrijo: error mío. esperanza esperar espera."
+            "Wait, actually I made a mistake. Let me correct: my mistake. waiting awaited wait. "
+            "On second thought, actually. factually"
         )
         self.assertEqual(
             counts,
             {
-                "espera": 2,
-                "wait": 1,
-                "corrijo": 1,
-                "en_realidad": 1,
-                "me_equivoque": 1,
-                "error_mio": 1,
-                "total": 7,
+                "wait": 2,
+                "actually": 2,
+                "let_me_correct": 1,
+                "i_made_a_mistake": 1,
+                "my_mistake": 1,
+                "on_second_thought": 1,
+                "total": 8,
             },
         )
-        m = measure("espera", "wait wait")
+        m = measure("wait", "actually actually")
         self.assertEqual(m["selfcorr"]["content"]["total"], 1)
-        self.assertEqual(m["selfcorr"]["reasoning"]["wait"], 2)
+        self.assertEqual(m["selfcorr"]["reasoning"]["actually"], 2)
+
+    def test_selfcorr_table(self):
+        self.assertEqual(
+            [n for n, _ in SELFCORR],
+            [
+                "wait",
+                "actually",
+                "let_me_correct",
+                "i_made_a_mistake",
+                "my_mistake",
+                "on_second_thought",
+            ],
+        )
+        self.assertEqual(
+            [rx.pattern for _, rx in SELFCORR],
+            [
+                r"(?<![^\W_])wait(?![^\W_])",
+                r"(?<![^\W_])actually(?![^\W_])",
+                r"(?<![^\W_])let\s+me\s+correct(?![^\W_])",
+                r"(?<![^\W_])i\s+made\s+a\s+mistake(?![^\W_])",
+                r"(?<![^\W_])my\s+mistake(?![^\W_])",
+                r"(?<![^\W_])on\s+second\s+thought(?![^\W_])",
+            ],
+        )
 
     def test_measure_schema(self):
         m = measure(None, None)

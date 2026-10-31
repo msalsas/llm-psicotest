@@ -6,7 +6,7 @@ from psicotest.checkers.common import make_result, r2_flag, reasoning_flags, res
 from psicotest.checkers.extract import parse_scalar
 from psicotest.checkers.text import fold
 
-PAIR_RE = re.compile(r"^(?:caja\s+)?([^\W_]\w*)\s*[=:]\s*(.+?)$", re.IGNORECASE)
+PAIR_RE = re.compile(r"^(?:box\s+)?([^\W_]\w*)\s*[=:]\s*(.+?)$", re.IGNORECASE)
 SPLIT_RE = re.compile(r"[;,]")
 
 

@@ -7,7 +7,7 @@ from psicotest.checkers import CHECKERS
 from psicotest.checkers.common import ItemSchemaError
 
 CSP = item_fixtures.CSP
-PEOPLE = ["Ana", "Bruno", "Carla", "Dario"]
+PEOPLE = ["Alice", "Brian", "Clara", "David"]
 
 
 def csp_item(key, constraints):
@@ -23,185 +23,185 @@ class TestCheckersCSP(unittest.TestCase):
         return CHECKERS["CSP"](content, "stop", None, item)
 
     def test_csp_case1(self):
-        r = self.call("RESPUESTA: A=3; B=3; C=4; D=2")
+        r = self.call("ANSWER: A=3; B=3; C=4; D=2")
         self.assertEqual(r.outcome, "WRONG")
         self.assertEqual(r.flags, ())
         self.assertEqual(r.detail, "invalid_perm")
 
     def test_csp_case2(self):
-        r = self.call("RESPUESTA: ver tabla arriba")
+        r = self.call("ANSWER: see table above")
         self.assertEqual(r.outcome, "NOANS")
         self.assertEqual(r.detail, "no_pairs")
 
     def test_csp_case3(self):
-        r = self.call("RESPUESTA: Ana=2; Bruno=1; Carla=4; Dario=3")
+        r = self.call("ANSWER: Alice=2; Brian=1; Clara=4; David=3")
         self.assertEqual(r.outcome, "GEN_BUG")
         self.assertEqual(r.detail, "alt_solution")
 
     def test_csp_ok_forms(self):
-        r = self.call("RESPUESTA: A=3; B=1; C=4; D=2")
+        r = self.call("ANSWER: A=3; B=1; C=4; D=2")
         self.assertEqual(r.outcome, "OK")
         self.assertEqual(r.flags, ())
-        r = self.call("RESPUESTA: ana: 3, BRUNO: 1, Carla=4; Darío=2")
+        r = self.call("ANSWER: alice: 3, BRIAN: 1, Clara=4; david=2")
         self.assertEqual(r.outcome, "OK")
         self.assertEqual(r.flags, ())
 
     def test_csp_violation(self):
-        r = self.call("RESPUESTA: Ana=1; Bruno=2; Carla=4; Dario=3")
+        r = self.call("ANSWER: Alice=1; Brian=2; Clara=4; David=3")
         self.assertEqual(r.outcome, "WRONG")
         self.assertEqual(r.detail, "violated:0,1")
 
     def test_csp_incomplete(self):
-        r = self.call("RESPUESTA: A=3; B=1")
+        r = self.call("ANSWER: A=3; B=1")
         self.assertEqual(r.outcome, "WRONG")
         self.assertEqual(r.detail, "incomplete")
 
     def test_csp_unknown_name(self):
-        r = self.call("RESPUESTA: Zoe=1; B=1")
+        r = self.call("ANSWER: Zoe=1; B=1")
         self.assertEqual(r.outcome, "AMBIG")
         self.assertEqual(r.detail, "unknown_name:zoe")
 
     def test_csp_key_invalid(self):
         item = csp_item(
-            {"Ana": 2, "Bruno": 3, "Carla": 4, "Dario": 1},
+            {"Alice": 2, "Brian": 3, "Clara": 4, "David": 1},
             [
-                ["at", "Ana", 2],
-                ["gt", "Carla", 3],
-                ["before", "Bruno", "Carla"],
-                ["not_at", "Dario", 1],
+                ["at", "Alice", 2],
+                ["gt", "Clara", 3],
+                ["before", "Brian", "Clara"],
+                ["not_at", "David", 1],
             ],
         )
-        r = self.call("RESPUESTA: Ana=2; Bruno=3; Carla=4; Dario=1", item)
+        r = self.call("ANSWER: Alice=2; Brian=3; Clara=4; David=1", item)
         self.assertEqual(r.outcome, "GEN_BUG")
         self.assertEqual(r.detail, "key_violates:3")
 
     def test_csp_schema(self):
         with self.assertRaises(ItemSchemaError):
             self.call(
-                "RESPUESTA: A=3; B=1; C=4; D=2",
-                csp_item(CSP.key["assignment"], [["near", "Ana", 1]]),
+                "ANSWER: A=3; B=1; C=4; D=2",
+                csp_item(CSP.key["assignment"], [["near", "Alice", 1]]),
             )
         with self.assertRaises(ItemSchemaError):
             self.call(
-                "RESPUESTA: A=3; B=1; C=4; D=2",
-                csp_item(CSP.key["assignment"], [["before", "Ana"]]),
+                "ANSWER: A=3; B=1; C=4; D=2",
+                csp_item(CSP.key["assignment"], [["before", "Alice"]]),
             )
         with self.assertRaises(ItemSchemaError):
             self.call(
-                "RESPUESTA: A=3; B=1; C=4; D=2", csp_item(CSP.key["assignment"], [["gt", "Ana", 9]])
+                "ANSWER: A=3; B=1; C=4; D=2", csp_item(CSP.key["assignment"], [["gt", "Alice", 9]])
             )
         with self.assertRaises(ItemSchemaError):
             self.call(
-                "RESPUESTA: A=3; B=1; C=4; D=2",
-                csp_item(CSP.key["assignment"], [["gap", "Ana", "Bruno", -2]]),
+                "ANSWER: A=3; B=1; C=4; D=2",
+                csp_item(CSP.key["assignment"], [["gap", "Alice", "Brian", -2]]),
             )
         with self.assertRaises(ItemSchemaError):
             self.call(
-                "RESPUESTA: A=3; B=1; C=4; D=2",
-                csp_item(CSP.key["assignment"], [["in", "Ana", [[1], 2]]]),
+                "ANSWER: A=3; B=1; C=4; D=2",
+                csp_item(CSP.key["assignment"], [["in", "Alice", [[1], 2]]]),
             )
         with self.assertRaises(ItemSchemaError):
             self.call(
-                "RESPUESTA: A=3; B=1; C=4; D=2",
-                csp_item(CSP.key["assignment"], [["in", "Ana", [1, "x"]]]),
+                "ANSWER: A=3; B=1; C=4; D=2",
+                csp_item(CSP.key["assignment"], [["in", "Alice", [1, "x"]]]),
             )
         bad_people = item_fixtures.make_item(
             "CSP",
             {"assignment": CSP.key["assignment"]},
             {
-                "people": ["Ana", ["Bruno"], "Carla", "Dario"],
+                "people": ["Alice", ["Brian"], "Clara", "David"],
                 "n_slots": 4,
                 "constraints": [],
             },
         )
         with self.assertRaises(ItemSchemaError):
-            self.call("RESPUESTA: A=3; B=1; C=4; D=2", bad_people)
+            self.call("ANSWER: A=3; B=1; C=4; D=2", bad_people)
         bad_name = item_fixtures.make_item(
             "CSP",
             {"assignment": CSP.key["assignment"]},
-            {"people": ["A\n", "Bruno", "Carla", "Dario"], "n_slots": 4, "constraints": []},
+            {"people": ["A\n", "Brian", "Clara", "David"], "n_slots": 4, "constraints": []},
         )
         with self.assertRaises(ItemSchemaError):
-            self.call("RESPUESTA: A=3; B=1; C=4; D=2", bad_name)
+            self.call("ANSWER: A=3; B=1; C=4; D=2", bad_name)
         bad_slots = item_fixtures.make_item(
             "CSP",
             {"assignment": CSP.key["assignment"]},
             {"people": PEOPLE, "n_slots": 5, "constraints": []},
         )
         with self.assertRaises(ItemSchemaError):
-            self.call("RESPUESTA: A=3; B=1; C=4; D=2", bad_slots)
+            self.call("ANSWER: A=3; B=1; C=4; D=2", bad_slots)
 
     def test_csp_dsl_table(self):
         ops = [
             (
-                ["at", "Ana", 3],
-                {"Ana": 3, "Bruno": 1, "Carla": 4, "Dario": 2},
-                {"Ana": 1, "Bruno": 2, "Carla": 4, "Dario": 3},
+                ["at", "Alice", 3],
+                {"Alice": 3, "Brian": 1, "Clara": 4, "David": 2},
+                {"Alice": 1, "Brian": 2, "Clara": 4, "David": 3},
             ),
             (
-                ["not_at", "Ana", 3],
-                {"Ana": 2, "Bruno": 1, "Carla": 4, "Dario": 3},
-                {"Ana": 3, "Bruno": 1, "Carla": 4, "Dario": 2},
+                ["not_at", "Alice", 3],
+                {"Alice": 2, "Brian": 1, "Clara": 4, "David": 3},
+                {"Alice": 3, "Brian": 1, "Clara": 4, "David": 2},
             ),
             (
-                ["before", "Bruno", "Ana"],
-                {"Ana": 3, "Bruno": 1, "Carla": 4, "Dario": 2},
-                {"Ana": 1, "Bruno": 2, "Carla": 4, "Dario": 3},
+                ["before", "Brian", "Alice"],
+                {"Alice": 3, "Brian": 1, "Clara": 4, "David": 2},
+                {"Alice": 1, "Brian": 2, "Clara": 4, "David": 3},
             ),
             (
-                ["adjacent", "Dario", "Ana"],
-                {"Ana": 3, "Bruno": 1, "Carla": 4, "Dario": 2},
-                {"Ana": 1, "Bruno": 2, "Carla": 4, "Dario": 3},
+                ["adjacent", "David", "Alice"],
+                {"Alice": 3, "Brian": 1, "Clara": 4, "David": 2},
+                {"Alice": 1, "Brian": 2, "Clara": 4, "David": 3},
             ),
             (
-                ["not_adjacent", "Dario", "Ana"],
-                {"Ana": 1, "Bruno": 2, "Carla": 4, "Dario": 3},
-                {"Ana": 2, "Bruno": 1, "Carla": 4, "Dario": 3},
+                ["not_adjacent", "David", "Alice"],
+                {"Alice": 1, "Brian": 2, "Clara": 4, "David": 3},
+                {"Alice": 2, "Brian": 1, "Clara": 4, "David": 3},
             ),
             (
-                ["gap", "Dario", "Ana", 2],
-                {"Ana": 1, "Bruno": 2, "Carla": 4, "Dario": 3},
-                {"Ana": 1, "Bruno": 3, "Carla": 4, "Dario": 2},
+                ["gap", "David", "Alice", 2],
+                {"Alice": 1, "Brian": 2, "Clara": 4, "David": 3},
+                {"Alice": 1, "Brian": 3, "Clara": 4, "David": 2},
             ),
             (
-                ["offset", "Dario", "Ana", 1],
-                {"Ana": 3, "Bruno": 1, "Carla": 4, "Dario": 2},
-                {"Ana": 2, "Bruno": 1, "Carla": 4, "Dario": 3},
+                ["offset", "David", "Alice", 1],
+                {"Alice": 3, "Brian": 1, "Clara": 4, "David": 2},
+                {"Alice": 2, "Brian": 1, "Clara": 4, "David": 3},
             ),
             (
-                ["lt", "Ana", 3],
-                {"Ana": 2, "Bruno": 1, "Carla": 4, "Dario": 3},
-                {"Ana": 3, "Bruno": 1, "Carla": 4, "Dario": 2},
+                ["lt", "Alice", 3],
+                {"Alice": 2, "Brian": 1, "Clara": 4, "David": 3},
+                {"Alice": 3, "Brian": 1, "Clara": 4, "David": 2},
             ),
             (
-                ["gt", "Ana", 2],
-                {"Ana": 3, "Bruno": 1, "Carla": 4, "Dario": 2},
-                {"Ana": 2, "Bruno": 1, "Carla": 4, "Dario": 3},
+                ["gt", "Alice", 2],
+                {"Alice": 3, "Brian": 1, "Clara": 4, "David": 2},
+                {"Alice": 2, "Brian": 1, "Clara": 4, "David": 3},
             ),
             (
-                ["parity", "Ana", "even"],
-                {"Ana": 2, "Bruno": 1, "Carla": 4, "Dario": 3},
-                {"Ana": 1, "Bruno": 2, "Carla": 4, "Dario": 3},
+                ["parity", "Alice", "even"],
+                {"Alice": 2, "Brian": 1, "Clara": 4, "David": 3},
+                {"Alice": 1, "Brian": 2, "Clara": 4, "David": 3},
             ),
             (
-                ["in", "Ana", [1, 3]],
-                {"Ana": 3, "Bruno": 1, "Carla": 4, "Dario": 2},
-                {"Ana": 2, "Bruno": 1, "Carla": 4, "Dario": 3},
+                ["in", "Alice", [1, 3]],
+                {"Alice": 3, "Brian": 1, "Clara": 4, "David": 2},
+                {"Alice": 2, "Brian": 1, "Clara": 4, "David": 3},
             ),
             (
-                ["between", "Bruno", "Ana", "Carla"],
-                {"Ana": 1, "Bruno": 2, "Carla": 4, "Dario": 3},
-                {"Ana": 1, "Bruno": 4, "Carla": 2, "Dario": 3},
+                ["between", "Brian", "Alice", "Clara"],
+                {"Alice": 1, "Brian": 2, "Clara": 4, "David": 3},
+                {"Alice": 1, "Brian": 4, "Clara": 2, "David": 3},
             ),
         ]
         for constraint, key, wrong in ops:
             with self.subTest(op=constraint[0]):
                 item = csp_item(key, [constraint])
                 parts = "; ".join(f"{p}={v}" for p, v in key.items())
-                r = self.call(f"RESPUESTA: {parts}", item)
+                r = self.call(f"ANSWER: {parts}", item)
                 self.assertEqual(r.outcome, "OK")
                 parts = "; ".join(f"{p}={v}" for p, v in wrong.items())
-                r = self.call(f"RESPUESTA: {parts}", item)
+                r = self.call(f"ANSWER: {parts}", item)
                 self.assertEqual(r.outcome, "WRONG")
                 self.assertEqual(r.detail, "violated:0")
 

@@ -1,7 +1,9 @@
 import dataclasses
+import re
 import unittest
 from decimal import Decimal
 from fractions import Fraction
+from pathlib import Path
 
 import _bootstrap
 import fakes
@@ -10,7 +12,18 @@ import test_fakes_smoke
 
 from psicotest.checkers import CHECKERS, check_turn, dispatch_key
 from psicotest.checkers.common import ItemSchemaError, make_result, num_equal
-from psicotest.spec import CheckResult, canonical_json
+from psicotest.checkers.logic import ROLE_WORDS
+from psicotest.checkers.rules import singular_candidates
+from psicotest.checkers.text import (
+    ANIMAL_STOP_WORDS,
+    ANIMAL_WORDS,
+    CNT_WORDS,
+    LABEL_POOL,
+    NAME_POOL,
+    NUMBER_WORDS,
+    fold,
+)
+from psicotest.spec import CheckResult, Item, Turn, canonical_json
 
 
 class TestCheckersCommon(unittest.TestCase):
@@ -73,36 +86,36 @@ class TestCheckersCommon(unittest.TestCase):
     def test_schema_errors(self):
         ar = item_fixtures.AR
         with self.assertRaises(ItemSchemaError):
-            CHECKERS["AR"]("RESPUESTA: 1", "stop", None, item_fixtures.make_item("AR", {}, {}))
+            CHECKERS["AR"]("ANSWER: 1", "stop", None, item_fixtures.make_item("AR", {}, {}))
         with self.assertRaises(ItemSchemaError):
             CHECKERS["AR"](
-                "RESPUESTA: 1", "stop", None, item_fixtures.make_item("AR", {"value": True}, {})
+                "ANSWER: 1", "stop", None, item_fixtures.make_item("AR", {"value": True}, {})
             )
         with self.assertRaises(ItemSchemaError):
             CHECKERS["AR"](
-                "RESPUESTA: 1",
+                "ANSWER: 1",
                 "stop",
                 None,
                 item_fixtures.make_item("AR", {"value": Decimal("NaN")}, {}),
             )
         with self.assertRaises(ItemSchemaError):
             CHECKERS["AR"](
-                "RESPUESTA: 1",
+                "ANSWER: 1",
                 "stop",
                 None,
                 item_fixtures.make_item("AR", {"value": Fraction(1, 2)}, {}),
             )
         with self.assertRaises(ItemSchemaError):
-            CHECKERS["CNT"]("RESPUESTA: 17", "stop", None, ar)
+            CHECKERS["CNT"]("ANSWER: 17", "stop", None, ar)
         bad_kind = dataclasses.replace(ar, answer_kind="num")
         with self.assertRaises(ItemSchemaError):
-            CHECKERS["AR"]("RESPUESTA: 1", "stop", None, bad_kind)
+            CHECKERS["AR"]("ANSWER: 1", "stop", None, bad_kind)
         bad_cap = dataclasses.replace(ar, capability=False)
         with self.assertRaises(ItemSchemaError):
-            CHECKERS["AR"]("RESPUESTA: 1", "stop", None, bad_cap)
+            CHECKERS["AR"]("ANSWER: 1", "stop", None, bad_cap)
         with self.assertRaises(TypeError):
-            CHECKERS["AR"]("RESPUESTA: 1", "stop", None, "x")
-        self.assertEqual(CHECKERS["SETUP"]("RESPUESTA: OK", "stop", None, None).outcome, "OK")
+            CHECKERS["AR"]("ANSWER: 1", "stop", None, "x")
+        self.assertEqual(CHECKERS["SETUP"]("ANSWER: OK", "stop", None, None).outcome, "OK")
 
     def test_make_result(self):
         r = make_result("OK", 1, {"R2_OK", "MULTI", "LEAK"}, "")
@@ -120,18 +133,21 @@ class TestCheckersCommon(unittest.TestCase):
             make_result("OK", None, (), "", score=1)
 
     def test_generic_synonym_valor(self):
-        item = item_fixtures.make_item("AMB", {"value": 45}, {"synonyms": ["valor"]})
-        r = CHECKERS["AMB"]("ACLARACION: ¿valor?", "stop", None, item)
+        item = item_fixtures.make_item("AMB", {"value": 45}, {"synonyms": ["value"]})
+        r = CHECKERS["AMB"]("CLARIFICATION: value?", "stop", None, item)
         self.assertEqual(r.outcome, "GEN_BUG")
         self.assertEqual(r.detail, "generic_synonym")
 
     def test_setup_ack(self):
-        self.assertEqual(CHECKERS["SETUP"]("RESPUESTA: OK", "stop", None, None).outcome, "OK")
-        self.assertEqual(CHECKERS["SETUP"]("RESPUESTA: ok.", "stop", None, None).outcome, "OK")
-        self.assertEqual(CHECKERS["SETUP"]("RESPUESTA: vale", "stop", None, None).outcome, "WRONG")
+        self.assertEqual(CHECKERS["SETUP"]("ANSWER: OK", "stop", None, None).outcome, "OK")
+        self.assertEqual(CHECKERS["SETUP"]("ANSWER: ok.", "stop", None, None).outcome, "OK")
+        self.assertEqual(
+            CHECKERS["SETUP"]("ANSWER: understood", "stop", None, None).outcome,
+            "WRONG",
+        )
         self.assertEqual(CHECKERS["SETUP"]("", "stop", None, None).outcome, "NOANS")
-        self.assertNotIn("R2_OK", CHECKERS["SETUP"]("RESPUESTA: OK", "stop", None, None).flags)
-        self.assertNotIn("R2_FAIL", CHECKERS["SETUP"]("RESPUESTA: OK", "stop", None, None).flags)
+        self.assertNotIn("R2_OK", CHECKERS["SETUP"]("ANSWER: OK", "stop", None, None).flags)
+        self.assertNotIn("R2_FAIL", CHECKERS["SETUP"]("ANSWER: OK", "stop", None, None).flags)
 
     def test_num_equal(self):
         self.assertEqual(num_equal(Decimal("42.0"), 42), (True, frozenset({"FMT"})))
@@ -150,6 +166,87 @@ class TestCheckersCommon(unittest.TestCase):
                 result, rules = test_fakes_smoke.score(turn, resp)
                 canonical_json(result)
                 canonical_json(rules)
+
+    def test_lexicon_tables(self):
+        self.assertEqual(
+            (
+                len(NAME_POOL),
+                len(LABEL_POOL),
+                len(ANIMAL_WORDS),
+                len(ANIMAL_STOP_WORDS),
+                len(CNT_WORDS),
+            ),
+            (40, 16, 84, 20, 320),
+        )
+        self.assertEqual(len(set(CNT_WORDS)), 320)
+        self.assertTrue(all(re.fullmatch(r"[A-Z][a-z]{2,7}", name) for name in NAME_POOL))
+        self.assertTrue(all(re.fullmatch(r"[A-Z][A-Z0-9]?", label) for label in LABEL_POOL))
+        self.assertTrue(
+            all(re.fullmatch(r"[a-z]+", animal) for animal in ANIMAL_WORDS + ANIMAL_STOP_WORDS)
+        )
+        self.assertTrue(all(re.fullmatch(r"[a-z]{3,10}", word) for word in CNT_WORDS))
+        self.assertEqual(tuple(sorted(NAME_POOL)), NAME_POOL)
+        self.assertEqual(tuple(sorted(ANIMAL_WORDS)), ANIMAL_WORDS)
+        self.assertEqual(tuple(sorted(ANIMAL_STOP_WORDS)), ANIMAL_STOP_WORDS)
+        self.assertEqual({name[0] for name in NAME_POOL}, set("ABCDEFGHIJKLMNOPRSTV"))
+        self.assertTrue(
+            all(
+                sum(name.startswith(initial) for name in NAME_POOL) == 2
+                for initial in "ABCDEFGHIJKLMNOPRSTV"
+            )
+        )
+        tables = [
+            {fold(value) for value in NAME_POOL},
+            {fold(value) for value in ANIMAL_WORDS},
+            {fold(value) for value in ANIMAL_STOP_WORDS},
+            {fold(value) for value in CNT_WORDS},
+            {fold(value) for value in NUMBER_WORDS},
+            {fold(value) for value in ROLE_WORDS},
+        ]
+        self.assertTrue(
+            all(not (tables[i] & tables[j]) for i in range(len(tables)) for j in range(i))
+        )
+        self.assertTrue(
+            all(
+                not (set(singular_candidates(word)) & (set(ANIMAL_WORDS) | set(ANIMAL_STOP_WORDS)))
+                for word in CNT_WORDS + NAME_POOL
+            )
+        )
+        self.assertTrue({"sheep", "cat", "mouse", "fish", "goat"} <= set(ANIMAL_WORDS))
+
+    def test_sources_ascii_only(self):
+        root = Path(__file__).resolve().parents[1]
+        paths = sorted((root / "src/psicotest").rglob("*.py")) + sorted(
+            (root / "tests").rglob("*.py")
+        )
+        for path in paths:
+            self.assertLess(max(path.read_bytes(), default=0), 0x80, path)
+
+    def test_no_v1_surface_tokens(self):
+        root = Path(__file__).resolve().parents[1]
+        rx = re.compile(
+            r"(?i)\b(?:respuesta|aclaraci|prompt_es|format_es|caballer|bribon|espia|"
+            r"oveja|raton|enunciado|corrijo|turno\b|caja\b|paso\b|valor\b|gato\b|pez\b)"
+        )
+        paths = sorted((root / "src/psicotest").rglob("*.py")) + sorted(
+            (root / "tests").rglob("*.py")
+        )
+        for path in paths:
+            if path.name != "test_checkers_common.py":
+                self.assertIsNone(rx.search(path.read_text("ascii")), path)
+
+    def test_battery_version_v2(self):
+        self.assertEqual(item_fixtures.make_item("AR", {"value": 1}, {}).battery_version, "v2")
+        root = Path(__file__).resolve().parents[1]
+        for path in (root / "src/psicotest").rglob("*.py"):
+            self.assertNotIn(b'"v1"', path.read_bytes())
+            self.assertNotIn(b"'v1'", path.read_bytes())
+
+    def test_prompt_field_renamed(self):
+        self.assertEqual([f.name for f in dataclasses.fields(Item)].index("prompt_en"), 11)
+        self.assertEqual([f.name for f in dataclasses.fields(Turn)].index("prompt_en"), 3)
+        self.assertNotIn("prompt_es", [f.name for f in dataclasses.fields(Item)])
+        self.assertNotIn("prompt_es", [f.name for f in dataclasses.fields(Turn)])
 
 
 if __name__ == "__main__":

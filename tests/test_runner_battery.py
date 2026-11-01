@@ -2,7 +2,7 @@ import unittest
 
 import _bootstrap
 
-from psicotest.generators import R3_TEXT, SLOTS_V2, reply_prompt
+from psicotest.generators import R3_TEXT, SLOTS_V3, reply_prompt
 from psicotest.runner.battery import (
     ORDER_A,
     ORDER_B,
@@ -22,7 +22,7 @@ class TestBattery(unittest.TestCase):
             turns = battery_layout(11, order)
             bases = [base_slot(t.slot) for t in turns if t.slot is not None]
             self.assertEqual(len(set(bases)), 26)
-            self.assertEqual(set(bases), {s.slot for s in SLOTS_V2})
+            self.assertEqual(set(bases), {s.slot for s in SLOTS_V3})
             asked = [base_slot(t.slot) for t in turns if t.kind == "amb_ask"]
             replied = [base_slot(t.slot) for t in turns if t.kind == "amb_reply"]
             self.assertEqual(asked, ["S07", "S17", "S24"])

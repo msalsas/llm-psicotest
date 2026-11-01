@@ -4,7 +4,7 @@ from psicotest.generators.lexicon import contains_animal, trigger_animal
 from psicotest.generators.missing_datum import reply_prompt
 from psicotest.generators.registry import GENERATORS, SPECS, START_KNOBS, golden_items
 from psicotest.generators.rules_text import R3_TEXT, RCL_TEXT, SETUP_TEXT
-from psicotest.generators.slots import SLOTS_V2, SlotSpec, build_slot_item
+from psicotest.generators.slots import SLOTS_V3, SlotSpec, build_slot_item
 
 __all__ = [
     "GENERATORS",
@@ -12,7 +12,7 @@ __all__ = [
     "R3_TEXT",
     "RCL_TEXT",
     "SETUP_TEXT",
-    "SLOTS_V2",
+    "SLOTS_V3",
     "SPECS",
     "START_KNOBS",
     "SlotSpec",

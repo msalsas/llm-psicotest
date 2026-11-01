@@ -12,10 +12,10 @@ from psicotest.spec import GenContext
 LADDER = {
     -1: {"n": 5, "count": (8, 10), "min_hop2": 2},
     0: {"n": 6, "count": (12, 14), "min_hop2": 3},
-    1: {"n": 6, "count": (10, 10), "min_hop2": 3},
-    2: {"n": 7, "count": (13, 15), "min_hop2": 3},
+    1: {"n": 7, "count": (14, 16), "min_hop2": 4},
+    2: {"n": 7, "count": (16, 18), "min_hop2": 4},
 }
-OVERRIDES = {"n_constraints": (12, 14)}
+OVERRIDES: dict[str, tuple[int, int]] = {}
 VARIANTS = ("base", "relabel")
 OPS = (
     "not_at",

@@ -23,10 +23,10 @@ from psicotest.spec import GenContext
 LADDER = {
     -1: {"n_steps": 5, "n_distractors": 2, "quantifier": 0, "n_same_unit": 2},
     0: {"n_steps": 5, "n_distractors": None, "quantifier": 0, "n_same_unit": None},
-    1: {"n_steps": 5, "n_distractors": 6, "quantifier": 0, "n_same_unit": 3},
-    2: {"n_steps": 5, "n_distractors": 6, "quantifier": 1, "n_same_unit": 3},
+    1: {"n_steps": 6, "n_distractors": 7, "quantifier": 1, "n_same_unit": 4},
+    2: {"n_steps": 7, "n_distractors": 8, "quantifier": 1, "n_same_unit": 5},
 }
-OVERRIDES = {"n_distractors": (4, 6)}
+OVERRIDES = {"n_distractors": (5, 8)}
 VARIANTS = ("base", "clean", "relabel")
 ALLOWED = (ADD_GROUPS, REMOVE_GROUPS, ADD, SUB)
 MIN_SAME_UNIT = 2
@@ -62,7 +62,7 @@ def draw(rng: Rng, params: dict) -> Inst | None:
         return None
     n = params["n_distractors"]
     if n is None:
-        n = rng.randint(4, 6)
+        n = rng.randint(*OVERRIDES["n_distractors"])
     same = params["n_same_unit"]
     if same is None:
         same = max(2, n // 2)

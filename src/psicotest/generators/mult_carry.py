@@ -10,8 +10,8 @@ from psicotest.spec import GenContext
 LADDER = {
     -1: {"digits_a": 5, "digits_b": 3},
     0: {"digits_a": 6, "digits_b": 4},
-    1: {"digits_a": 6, "digits_b": 5},
-    2: {"digits_a": 7, "digits_b": 5},
+    1: {"digits_a": 8, "digits_b": 5},
+    2: {"digits_a": 9, "digits_b": 6},
 }
 OVERRIDES: dict[str, tuple[int, int]] = {}
 VARIANTS = ("base",)

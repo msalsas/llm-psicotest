@@ -4,14 +4,14 @@ from psicotest.generators import (
     R3_TEXT,
     RCL_TEXT,
     SETUP_TEXT,
-    SLOTS_V2,
+    SLOTS_V3,
     build_slot_item,
     reply_prompt,
     trigger_animal,
 )
 from psicotest.spec import Turn
 
-SLOT_BY_ID = {s.slot: s for s in SLOTS_V2}
+SLOT_BY_ID = {s.slot: s for s in SLOTS_V3}
 ORDER_A = (
     (1, "setup", None),
     (2, "item", "S01"),
@@ -75,7 +75,7 @@ def battery_layout(seed: int, order: str = "A") -> list[Turn]:
             continue
         spec = SLOT_BY_ID[slot_id]
         trigger = turn in TRIGGERS
-        noun = trigger_animal("v2", seed, order, turn) if trigger else None
+        noun = trigger_animal("v3", seed, order, turn) if trigger else None
         if kind == "amb_reply":
             item = dataclasses.replace(build_slot_item(spec, seed), animal=noun)
             prompt = reply_prompt(item)

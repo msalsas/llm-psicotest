@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PATH = ROOT / "tests" / "golden" / "rng.json"
-DEFAULT_ITEMS_PATH = ROOT / "tests" / "golden" / "items_v2.json"
+DEFAULT_ITEMS_PATH = ROOT / "tests" / "golden" / "items_v3.json"
 
 
 def _module(name):

@@ -6,7 +6,7 @@ from pathlib import Path
 from psicotest.checkers.registry import check_turn
 from psicotest.checkers.rules import check_rules
 from psicotest.checkers.telemetry import measure
-from psicotest.generators import SLOTS_V2
+from psicotest.generators import SLOTS_V3
 from psicotest.rng import derive_seed
 from psicotest.runner import battery, checkpoint
 from psicotest.runner.client import (
@@ -111,7 +111,7 @@ def run_battery(
     out_path.mkdir(parents=True, exist_ok=True)
     checkpoint_path = out_path / f"v2_{seed}_{order}.jsonl"
     report_path = out_path / f"v2_{seed}_{order}.report.json"
-    manifest = checkpoint.canonical_hash(list(SLOTS_V2))
+    manifest = checkpoint.canonical_hash(list(SLOTS_V3))
     params = {
         "max_tokens": max_tokens,
         "temperature": DEFAULT_TEMPERATURE,
@@ -128,7 +128,7 @@ def run_battery(
     header = {
         "type": "header",
         "schema": 1,
-        "battery_version": "v2",
+        "battery_version": "v3",
         "manifest_sha256": manifest,
         "psicotest_version": _version(),
         "python_version": _python_version(),
@@ -181,7 +181,7 @@ def run_battery(
     for turn in turns[start:]:
         started_at = _utc_now()
         t0 = time.monotonic()
-        req_seed = derive_seed("req", "v2", seed, order, turn.turn) % (1 << 31)
+        req_seed = derive_seed("req", "v3", seed, order, turn.turn) % (1 << 31)
         request_messages = [*messages, {"role": "user", "content": turn.prompt_en}]
         try:
             response = client.chat(request_messages, max_tokens=max_tokens, seed=req_seed)

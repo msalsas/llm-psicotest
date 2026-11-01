@@ -8,7 +8,7 @@ import _bootstrap
 import fakes
 from fake_transport import FakeServerTransport
 
-from psicotest.generators import SLOTS_V2
+from psicotest.generators import SLOTS_V3
 from psicotest.runner import driver
 from psicotest.runner.battery import battery_layout
 from psicotest.runner.driver import run_battery
@@ -116,7 +116,7 @@ class TestIntegration(unittest.TestCase):
             turn_records = [r for r in records if r["type"] == "turn"]
             report_text = report_path.read_text("utf-8")
             report = json.loads(report_text)
-            capability_slots = {s.slot for s in SLOTS_V2 if s.capability}
+            capability_slots = {s.slot for s in SLOTS_V3 if s.capability}
             capability_sum = sum(
                 r["scoring"]["score"]
                 for r in turn_records

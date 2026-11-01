@@ -74,7 +74,7 @@ class TestReport(unittest.TestCase):
             oracle_run(tmp)
             _path, report = load_report(tmp)
             self.assertEqual(report["schema"], 1)
-            self.assertEqual(report["battery_version"], "v2")
+            self.assertEqual(report["battery_version"], "v3")
             self.assertEqual(report["seed"], 7)
             self.assertEqual(report["order"], "A")
             self.assertEqual(report["capability"]["score"], 21)

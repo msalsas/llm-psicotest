@@ -13,8 +13,8 @@ from psicotest.generators import GENERATORS, golden_items
 from psicotest.spec import canonical_json
 
 ROOT = Path(__file__).resolve().parents[1]
-GOLDEN_PATH = ROOT / "tests" / "golden" / "items_v2.json"
-STALE = "regenerate goldens with tools/gen_golden.py in the version-bump commit"
+GOLDEN_PATH = ROOT / "tests" / "golden" / "items_v3.json"
+STALE = "v3 golden stale: regenerate with tools/gen_golden.py in the version-bump commit"
 CODE = (
     "import hashlib, json\n"
     "from psicotest.generators import golden_items\n"

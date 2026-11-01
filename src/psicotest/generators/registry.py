@@ -71,7 +71,7 @@ def golden_items() -> dict[str, Item]:
             cases.append((1, "base", GOLDEN_ANIMAL))
         for seed, variant, animal in cases:
             out[spec.key(seed, variant, animal)] = make_item(
-                battery="v2",
+                battery="v3",
                 slot="GOLD",
                 generator=name,
                 knobs=START_KNOBS[name],

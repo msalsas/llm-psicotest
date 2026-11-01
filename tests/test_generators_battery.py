@@ -12,7 +12,7 @@ from psicotest.checkers.schema import LABEL_RE, NAME_RE, invariant, validate
 from psicotest.checkers.text import fold
 from psicotest.generators import (
     R3_TEXT,
-    SLOTS_V2,
+    SLOTS_V3,
     build_slot_item,
     contains_animal,
     lexicon,
@@ -95,23 +95,23 @@ def summary(results):
 
 class TestGeneratorsBattery(unittest.TestCase):
     def test_slots_table(self):
-        self.assertEqual([s.slot for s in SLOTS_V2], [f"S{i:02d}" for i in range(1, 27)])
-        self.assertEqual(sum(1 for s in SLOTS_V2 if s.capability), 21)
-        self.assertEqual(collections.Counter(s.family for s in SLOTS_V2), FAMILY_COUNTS)
-        by_slot = {s.slot: s for s in SLOTS_V2}
-        self.assertEqual({s.slot: s.twin_of for s in SLOTS_V2 if s.twin_of}, TWINS)
-        self.assertEqual({s.slot: s.mirror_of for s in SLOTS_V2 if s.mirror_of}, {"S14": "S03"})
+        self.assertEqual([s.slot for s in SLOTS_V3], [f"S{i:02d}" for i in range(1, 27)])
+        self.assertEqual(sum(1 for s in SLOTS_V3 if s.capability), 21)
+        self.assertEqual(collections.Counter(s.family for s in SLOTS_V3), FAMILY_COUNTS)
+        by_slot = {s.slot: s for s in SLOTS_V3}
+        self.assertEqual({s.slot: s.twin_of for s in SLOTS_V3 if s.twin_of}, TWINS)
+        self.assertEqual({s.slot: s.mirror_of for s in SLOTS_V3 if s.mirror_of}, {"S14": "S03"})
         for slot, source in (*TWINS.items(), ("S14", "S03")):
             self.assertEqual(by_slot[slot].knobs, by_slot[source].knobs)
             self.assertEqual(by_slot[slot].generator, by_slot[source].generator)
         self.assertEqual(by_slot["S14"].variant, "clean")
-        self.assertEqual(by_slot["S04"].knobs, {"level": 0, "n_constraints": 13})
-        self.assertEqual(by_slot["S03"].knobs, {"level": 0, "n_distractors": 4})
-        self.assertEqual(by_slot["S11"].knobs, {"level": 0, "n_distractors": 5})
+        self.assertEqual(by_slot["S04"].knobs, {"level": 1})
+        self.assertEqual(by_slot["S03"].knobs, {"level": 0, "n_distractors": 6})
+        self.assertEqual(by_slot["S11"].knobs, {"level": 1})
 
     def test_slot_items_validate(self):
         for seed in (*range(1, 21), *SEEDS):
-            for spec in SLOTS_V2:
+            for spec in SLOTS_V3:
                 item = build_slot_item(spec, seed)
                 validate(item, spec.family)
                 self.assertIsNone(invariant(item, spec.family), msg=item.item_id)
@@ -150,7 +150,7 @@ class TestGeneratorsBattery(unittest.TestCase):
             for order in ("A", "B"):
                 for t in build_turns(seed, order):
                     if t.turn in TRIGGERS:
-                        noun = trigger_animal("v2", seed, order, t.turn)
+                        noun = trigger_animal("v3", seed, order, t.turn)
                         self.assertEqual(t.item.animal, noun)
                         self.assertEqual(contains_animal(t.prompt_en), (noun,), msg=t.turn)
                         self.assertTrue(t.r3_trigger)

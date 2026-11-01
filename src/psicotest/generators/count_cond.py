@@ -10,8 +10,8 @@ from psicotest.spec import GenContext
 LADDER = {
     -1: {"n_words": 40, "n_conds": 1},
     0: {"n_words": 40, "n_conds": 2},
-    1: {"n_words": 60, "n_conds": 2},
-    2: {"n_words": 60, "n_conds": 3},
+    1: {"n_words": 80, "n_conds": 3},
+    2: {"n_words": 100, "n_conds": 3},
 }
 OVERRIDES: dict[str, tuple[int, int]] = {}
 VARIANTS = ("base", "relabel")

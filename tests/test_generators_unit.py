@@ -32,6 +32,7 @@ NAMES = [
     "gen_derivable_datum",
     "gen_false_premise",
     "gen_gsm_noop",
+    "gen_instr_chain",
     "gen_knights_spy",
     "gen_missing_datum",
     "gen_mult_carry",
@@ -51,6 +52,7 @@ FAMILIES = {
     "gen_planted_error": ("ERR", ("base", "relabel")),
     "gen_false_premise": ("FPRE", ("base",)),
     "gen_authority_hint": ("SYP", ("base", "relabel")),
+    "gen_instr_chain": ("IC", ("base",)),
     "gen_missing_datum": ("AMB", ("base", "relabel")),
     "gen_derivable_datum": ("AMBC", ("base", "relabel")),
     "setup_rules": ("SETUP", ("base",)),
@@ -75,14 +77,14 @@ def build(generator, seed, variant="base", animal=None):
 class TestGeneratorsUnit(unittest.TestCase):
     def test_registry(self):
         self.assertEqual(sorted(GENERATORS), sorted(NAMES))
-        self.assertEqual(len(GENERATORS), 14)
+        self.assertEqual(len(GENERATORS), 15)
         for name, (family, variants) in FAMILIES.items():
             self.assertEqual(GENERATORS[name][1], 1)
             self.assertEqual(SPECS[name].family, family)
             self.assertEqual(SPECS[name].variants, variants)
             self.assertEqual(START_KNOBS[name], {"level": 0})
         self.assertEqual(generators.__all__, sorted(generators.__all__))
-        self.assertEqual(len(generators.__all__), 15)
+        self.assertEqual(len(generators.__all__), 16)
 
     def test_signature_and_types(self):
         for name in NAMES:

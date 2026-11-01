@@ -8,7 +8,7 @@ import _bootstrap
 import fakes
 from fake_transport import FakeServerTransport
 
-from psicotest.generators import SLOTS_V3
+from psicotest.generators import SLOTS_V4
 from psicotest.runner import checkpoint, driver
 from psicotest.runner.battery import battery_layout
 from psicotest.runner.driver import run_battery
@@ -160,8 +160,8 @@ class TestCheckpoint(unittest.TestCase):
                 history.append({"role": "assistant", "content": response["content"]})
             records[-1]["request"]["messages_sha256"] = "tampered"
             header = sample_header()
-            header["manifest_sha256"] = checkpoint.canonical_hash(list(SLOTS_V3))
-            path = Path(tmp) / "v2_7_A.jsonl"
+            header["manifest_sha256"] = checkpoint.canonical_hash(list(SLOTS_V4))
+            path = Path(tmp) / "v4_7_A.jsonl"
             checkpoint.write_header(path, header)
             for record in records:
                 checkpoint.write_turn(path, record)
@@ -195,7 +195,7 @@ class TestCheckpoint(unittest.TestCase):
                     out_dir=tmp,
                 )
             self.assertEqual(code, driver.EXIT_OK)
-            path = Path(tmp) / "v2_7_A.jsonl"
+            path = Path(tmp) / "v4_7_A.jsonl"
             before = path.read_bytes()
             server2 = fakes.FakeServer("oracle", turns)
             transport2 = FakeServerTransport(server2)

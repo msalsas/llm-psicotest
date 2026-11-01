@@ -11,7 +11,7 @@ LADDER = {
     -1: {"n_words": 40, "n_conds": 1},
     0: {"n_words": 40, "n_conds": 2},
     1: {"n_words": 80, "n_conds": 3},
-    2: {"n_words": 100, "n_conds": 3},
+    2: {"n_words": 130, "n_conds": 4, "min_rate": 10, "key_hi": 26, "single_letter": True},
 }
 OVERRIDES: dict[str, tuple[int, int]] = {}
 VARIANTS = ("base", "relabel")
@@ -30,6 +30,7 @@ MIN_MARGIN = 3
 class Inst:
     word_idx: tuple[int, ...]
     conditions: tuple[tuple, ...]
+    key_hi: int
 
 
 def holds(word: str, cond: tuple) -> bool:
@@ -56,7 +57,7 @@ def count(words: list[str], conditions: tuple) -> int:
 def valid(inst: Inst) -> str | None:
     words = [CNT_WORDS[i] for i in inst.word_idx]
     key = count(words, inst.conditions)
-    if not KEY_RANGE[0] <= key <= KEY_RANGE[1]:
+    if not KEY_RANGE[0] <= key <= inst.key_hi:
         return "key_range"
     if len(inst.conditions) >= 2 and any(
         count(words, (c,)) < key + MIN_MARGIN for c in inst.conditions
@@ -77,19 +78,28 @@ def _draw_condition(rng: Rng, op: str) -> tuple:
 
 def draw(rng: Rng, params: dict) -> Inst | None:
     conditions: list[tuple] = []
-    for _ in range(params["n_conds"]):
-        used = [c[0] for c in conditions]
-        pool = [
-            op
-            for op in OPS
-            if op not in used and not (op in CONTAINS_OPS and any(u in CONTAINS_OPS for u in used))
-        ]
-        conditions.append(_draw_condition(rng, rng.choice(pool)))
+    if params.get("single_letter", False):
+        kinds = [rng.choice(LETTER_OPS)] + [op for op in OPS if op not in LETTER_OPS]
+        rng.shuffle(kinds)
+        for op in kinds:
+            conditions.append(_draw_condition(rng, op))
+    else:
+        for _ in range(params["n_conds"]):
+            used = [c[0] for c in conditions]
+            pool = [
+                op
+                for op in OPS
+                if op not in used
+                and not (op in CONTAINS_OPS and any(u in CONTAINS_OPS for u in used))
+            ]
+            conditions.append(_draw_condition(rng, rng.choice(pool)))
     matches = count(list(CNT_WORDS), tuple(conditions))
-    if matches * 100 < MIN_RATE * len(CNT_WORDS) or matches * 100 > MAX_RATE * len(CNT_WORDS):
+    min_rate = params.get("min_rate", MIN_RATE)
+    too_few = matches * 100 < min_rate * len(CNT_WORDS)
+    if too_few or matches * 100 > MAX_RATE * len(CNT_WORDS):
         return None
     chosen = rng.sample(range(len(CNT_WORDS)), params["n_words"])
-    inst = Inst(tuple(sorted(chosen)), tuple(conditions))
+    inst = Inst(tuple(sorted(chosen)), tuple(conditions), params.get("key_hi", KEY_RANGE[1]))
     return inst if valid(inst) is None else None
 
 

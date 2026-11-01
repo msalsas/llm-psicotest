@@ -65,6 +65,8 @@ def oracle_value(turn: Turn) -> str:
         return "; ".join(parts)
     if family == "ERR":
         return f"STEP {key['step']}; VALUE {format_en(key['value'])}"
+    if family == "IC":
+        return ", ".join(key["tokens"])
     return format_en(key["value"])
 
 

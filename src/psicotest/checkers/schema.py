@@ -217,6 +217,21 @@ def validate(item: Item | None, family: str) -> None:
             raise ItemSchemaError("bad error_kind")
         if _req(meta, "level") not in ("H1", "H2", "H3"):
             raise ItemSchemaError("bad level")
+    elif fam == "IC":
+        tokens = _req(key, "tokens")
+        if (
+            not isinstance(tokens, (list, tuple))
+            or not tokens
+            or any(not isinstance(t, str) or t == "" for t in tokens)
+        ):
+            raise ItemSchemaError("bad tokens")
+        instance = _req(meta, "instance")
+        if (
+            not isinstance(instance, Mapping)
+            or not isinstance(instance.get("tokens"), (list, tuple))
+            or not isinstance(instance.get("ops"), (list, tuple))
+        ):
+            raise ItemSchemaError("bad instance")
     elif fam == "AMB":
         if not _is_num(_req(key, "value")):
             raise ItemSchemaError("bad value")
@@ -323,6 +338,25 @@ def invariant(item: Item, family: str) -> str | None:
             return "hint_too_close"
         if hint <= 0:
             return "hint_nonpositive"
+    elif fam == "IC":
+        instance = meta["instance"]
+        initial = instance["tokens"]
+        if len(key["tokens"]) != len(initial):
+            return "key_length_mismatch"
+        n = len(initial)
+        for op in instance["ops"]:
+            kind = op.get("kind")
+            if kind == "rotate":
+                if not _is_int(op["k"]) or not 1 <= op["k"] <= n - 1:
+                    return "bad_op"
+            elif kind == "swap":
+                if not _is_int(op["i"]) or not _is_int(op["j"]) or not 1 <= op["i"] < op["j"] <= n:
+                    return "bad_op"
+            elif kind == "move":
+                if not _is_int(op["i"]) or not 1 <= op["i"] <= n:
+                    return "bad_op"
+            elif kind not in ("reverse", "replace"):
+                return "bad_op"
     elif fam == "AMB":
         if isinstance(key["value"], Decimal) and key["value"].as_tuple().exponent < -2:
             return "key_not_2dp"

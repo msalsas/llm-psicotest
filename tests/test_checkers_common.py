@@ -40,6 +40,7 @@ class TestCheckersCommon(unittest.TestCase):
                 "CSP",
                 "ERR",
                 "FPRE",
+                "IC",
                 "LOG",
                 "NOOP",
                 "RCL",

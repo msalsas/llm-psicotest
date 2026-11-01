@@ -13,8 +13,8 @@ from psicotest.generators import GENERATORS, golden_items
 from psicotest.spec import canonical_json
 
 ROOT = Path(__file__).resolve().parents[1]
-GOLDEN_PATH = ROOT / "tests" / "golden" / "items_v3.json"
-STALE = "v3 golden stale: regenerate with tools/gen_golden.py in the version-bump commit"
+GOLDEN_PATH = ROOT / "tests" / "golden" / "items_v4.json"
+STALE = "v4 golden stale: regenerate with tools/gen_golden.py in the version-bump commit"
 CODE = (
     "import hashlib, json\n"
     "from psicotest.generators import golden_items\n"
@@ -50,7 +50,7 @@ class TestGeneratorsGolden(unittest.TestCase):
     def test_golden_key_set(self):
         golden = load_golden()
         self.assertEqual(sorted(golden_items()), sorted(golden))
-        self.assertEqual(len(golden), 132)
+        self.assertEqual(len(golden), 138)
 
     def test_version_bump_required(self):
         for key in load_golden():

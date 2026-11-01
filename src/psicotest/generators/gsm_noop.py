@@ -24,7 +24,7 @@ LADDER = {
     -1: {"n_steps": 5, "n_distractors": 2, "quantifier": 0, "n_same_unit": 2},
     0: {"n_steps": 5, "n_distractors": None, "quantifier": 0, "n_same_unit": None},
     1: {"n_steps": 6, "n_distractors": 7, "quantifier": 1, "n_same_unit": 4},
-    2: {"n_steps": 7, "n_distractors": 8, "quantifier": 1, "n_same_unit": 5},
+    2: {"n_steps": 9, "n_distractors": 10, "quantifier": 1, "n_same_unit": 6},
 }
 OVERRIDES = {"n_distractors": (5, 8)}
 VARIANTS = ("base", "clean", "relabel")

@@ -13,7 +13,7 @@ LADDER = {
     -1: {"n": 5, "count": (8, 10), "min_hop2": 2},
     0: {"n": 6, "count": (12, 14), "min_hop2": 3},
     1: {"n": 7, "count": (14, 16), "min_hop2": 4},
-    2: {"n": 7, "count": (16, 18), "min_hop2": 4},
+    2: {"n": 7, "count": (14, 16), "min_hop2": 5},
 }
 OVERRIDES: dict[str, tuple[int, int]] = {}
 VARIANTS = ("base", "relabel")
@@ -95,17 +95,20 @@ def pins_cell(c: tuple, n: int) -> bool:
 
 
 def hop2(perm: tuple[int, ...], constraints: Sequence[tuple]) -> int:
-    n = len(perm)
-    prefix = list(itertools.permutations(range(1, n + 1)))
-    necessary = 0
-    for i, c in enumerate(constraints):
-        rest = constraints[i + 1 :]
-        if len(mentioned(c)) >= 2 and any(
-            s != perm and all(holds(r, s) for r in rest) for s in prefix
-        ):
-            necessary += 1
-        prefix = [s for s in prefix if holds(c, s)]
-    return necessary
+    necessary: set[int] = set()
+    for s in itertools.permutations(range(1, len(perm) + 1)):
+        if s == perm:
+            continue
+        failed = -1
+        for i, c in enumerate(constraints):
+            if not holds(c, s):
+                if failed >= 0:
+                    failed = -1
+                    break
+                failed = i
+        if failed >= 0 and len(mentioned(constraints[failed])) >= 2:
+            necessary.add(failed)
+    return len(necessary)
 
 
 def valid(inst: Inst) -> str | None:

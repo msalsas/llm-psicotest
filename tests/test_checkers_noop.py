@@ -37,6 +37,11 @@ class TestCheckersNOOP(unittest.TestCase):
         self.assertEqual(r.outcome, "OK")
         self.assertEqual(r.flags, ("R2_OK",))
 
+    def test_noop_superset_rejected(self):
+        r = self.call("ANSWER: 37, 42")
+        self.assertEqual(r.outcome, "AMBIG")
+        self.assertEqual(r.detail, "multi_number")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -21,13 +21,13 @@ LADDER = {
     -1: {"n_steps": 8, "first": (2, 3), "n_errors": 1},
     0: {"n_steps": 8, "first": (4, 7), "n_errors": 1},
     1: {"n_steps": 12, "first": (6, 10), "n_errors": 1},
-    2: {"n_steps": 15, "first": (5, 8), "n_errors": 2},
+    2: {"n_steps": 18, "first": (5, 8), "n_errors": 3},
 }
 OVERRIDES: dict[str, tuple[int, int]] = {}
 VARIANTS = ("base", "relabel")
 ALLOWED = (ADD_GROUPS, REMOVE_GROUPS, ADD, SUB)
 DELTAS = (-100, -10, -2, -1, 1, 2, 10, 100)
-LAST_ERROR_STEP = 10
+LAST_ERROR_STEP = 14
 ONE_ERROR = (
     "One of the steps contains a calculation error; the following steps carry that error "
     "forward, but their operations are done correctly. Give the number of the step with the "
@@ -86,9 +86,10 @@ def draw(rng: Rng, params: dict) -> Inst | None:
     if chain is None:
         return None
     lo, hi = params["first"]
+    n_errors = params["n_errors"]
     steps = [rng.randint(lo, hi)]
-    if params["n_errors"] == 2:
-        steps.append(rng.randint(steps[0] + 2, LAST_ERROR_STEP))
+    for i in range(1, n_errors):
+        steps.append(rng.randint(steps[-1] + 2, LAST_ERROR_STEP - (n_errors - 1 - i) * 2))
     inst = Inst(chain, tuple((s, rng.choice(DELTAS)) for s in steps))
     return inst if valid(inst) is None else None
 

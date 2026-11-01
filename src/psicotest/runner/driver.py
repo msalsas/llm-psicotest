@@ -6,7 +6,7 @@ from pathlib import Path
 from psicotest.checkers.registry import check_turn
 from psicotest.checkers.rules import check_rules
 from psicotest.checkers.telemetry import measure
-from psicotest.generators import SLOTS_V2
+from psicotest.generators import SLOTS_V4
 from psicotest.rng import derive_seed
 from psicotest.runner import battery, checkpoint
 from psicotest.runner.client import (
@@ -14,12 +14,15 @@ from psicotest.runner.client import (
     DEFAULT_TOP_P,
     Client,
 )
+from psicotest.runner.report import CAPABILITY_SLOTS
 from psicotest.runner.transport import (
     AuthError,
     ProtocolError,
     Transport,
     TransportError,
 )
+
+BATTERY_VERSION = "v4"
 
 EXIT_OK = 0
 EXIT_INTERNAL = 1
@@ -38,6 +41,14 @@ _WRITERS = {
     "error": checkpoint.write_error,
     "footer": checkpoint.write_footer,
 }
+
+
+def _checkpoint_path(seed: int, order: str) -> str:
+    return f"{BATTERY_VERSION}_{seed}_{order}.jsonl"
+
+
+def _report_path(seed: int, order: str) -> str:
+    return f"{BATTERY_VERSION}_{seed}_{order}.report.json"
 
 
 def _utc_now() -> str:
@@ -99,7 +110,7 @@ def run_battery(
     order: str = "A",
     out_dir: str = "runs",
     max_tokens: int = 6144,
-    timeout: "float" = 120,
+    timeout: "float" = 240,
     auth_scheme: str = "bearer",
     key_env: str = "PSICOTEST_API_KEY",
     resume: bool = False,
@@ -109,9 +120,9 @@ def run_battery(
     turns = battery.battery_layout(seed, order)
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
-    checkpoint_path = out_path / f"v2_{seed}_{order}.jsonl"
-    report_path = out_path / f"v2_{seed}_{order}.report.json"
-    manifest = checkpoint.canonical_hash(list(SLOTS_V2))
+    checkpoint_path = out_path / _checkpoint_path(seed, order)
+    report_path = out_path / _report_path(seed, order)
+    manifest = checkpoint.canonical_hash(list(SLOTS_V4))
     params = {
         "max_tokens": max_tokens,
         "temperature": DEFAULT_TEMPERATURE,
@@ -128,7 +139,7 @@ def run_battery(
     header = {
         "type": "header",
         "schema": 1,
-        "battery_version": "v2",
+        "battery_version": BATTERY_VERSION,
         "manifest_sha256": manifest,
         "psicotest_version": _version(),
         "python_version": _python_version(),
@@ -181,7 +192,7 @@ def run_battery(
     for turn in turns[start:]:
         started_at = _utc_now()
         t0 = time.monotonic()
-        req_seed = derive_seed("req", "v2", seed, order, turn.turn) % (1 << 31)
+        req_seed = derive_seed("req", BATTERY_VERSION, seed, order, turn.turn) % (1 << 31)
         request_messages = [*messages, {"role": "user", "content": turn.prompt_en}]
         try:
             response = client.chat(request_messages, max_tokens=max_tokens, seed=req_seed)
@@ -210,6 +221,27 @@ def run_battery(
             print(str(exc)[:500], file=sys.stderr)
             return EXIT_INTERNAL
         telemetry = measure(response.content, response.reasoning_content)
+        scoring = {
+            "outcome": result.outcome,
+            "score": result.score,
+            "value": _json_safe(result.value),
+            "flags": _json_safe(result.flags),
+            "detail": result.detail,
+        }
+        if turn.kind == "item" and turn.slot is not None and turn.slot in CAPABILITY_SLOTS:
+            leak_content = telemetry["leak"]["content"]
+            cjk_chars = (
+                leak_content["han"]
+                + leak_content["kana"]
+                + leak_content["hangul"]
+                + leak_content["bopomofo"]
+                + telemetry["cjk_punct"]["content"]
+            )
+            if cjk_chars > 0:
+                scoring["outcome"] = "WRONG"
+                scoring["score"] = 0
+                if "leak" not in scoring["flags"]:
+                    scoring["flags"].append("leak")
         req_params = {
             "model": model,
             "max_tokens": max_tokens,
@@ -243,13 +275,7 @@ def run_battery(
             "timing": {"started_at": started_at, "wall_s": wall_s},
             "effective_tok_s": effective_tok_s,
             "attempts": client._last_attempts,
-            "scoring": {
-                "outcome": result.outcome,
-                "score": result.score,
-                "value": _json_safe(result.value),
-                "flags": _json_safe(result.flags),
-                "detail": result.detail,
-            },
+            "scoring": scoring,
             "rules": rules,
             "telemetry": telemetry,
         }

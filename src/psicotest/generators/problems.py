@@ -152,11 +152,17 @@ def shown_args(chain: Chain, hidden_op: int, hidden_arg: int) -> set[int]:
     }
 
 
+def _draw_kinds(rng: Rng, pool: tuple[str, ...], k: int) -> list[str]:
+    if k <= len(pool):
+        return rng.sample(pool, k)
+    return [rng.choice(pool) for _ in range(k)]
+
+
 def draw_distractors(
     rng: Rng, chain: Chain, taken: set[int], same: int, other: int, quantifier: int
 ) -> tuple | None:
     m = len(chain.ops) - 1
-    kinds = rng.sample(SAME_KINDS, same) + rng.sample(OTHER_KINDS, other)
+    kinds = _draw_kinds(rng, SAME_KINDS, same) + _draw_kinds(rng, OTHER_KINDS, other)
     used = set(taken)
     out = []
     for kind in kinds:

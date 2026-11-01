@@ -31,7 +31,7 @@ def main():
         print("PSICOTEST_API_KEY not set", file=sys.stderr)
         return 3
 
-    transport = HTTPTransport(timeout=120)
+    transport = HTTPTransport(timeout=240)
     return run_battery(
         transport=transport,
         base_url=args.base_url,

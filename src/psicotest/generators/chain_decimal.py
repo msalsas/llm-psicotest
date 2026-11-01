@@ -11,8 +11,8 @@ from psicotest.spec import GenContext
 LADDER = {
     -1: {"digits": 3, "extra_ops": 0},
     0: {"digits": 4, "extra_ops": 0},
-    1: {"digits": 4, "extra_ops": 1},
-    2: {"digits": 4, "extra_ops": 2},
+    1: {"digits": 5, "extra_ops": 2},
+    2: {"digits": 8, "extra_ops": 2},
 }
 OVERRIDES: dict[str, tuple[int, int]] = {}
 VARIANTS = ("base",)

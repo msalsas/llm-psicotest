@@ -31,19 +31,23 @@ from psicotest.rng import Rng, derive_seed
 from psicotest.spec import canonical_json
 
 VARIANT_SEEDS = range(1, 101)
-CSP_COUNT = {-1: (8, 10), 0: (12, 14), 1: (10, 10), 2: (13, 15)}
-CSP_HOP2 = {-1: 2, 0: 3, 1: 3, 2: 3}
-DIGITS_AR = {-1: (5, 3), 0: (6, 4), 1: (6, 5), 2: (7, 5)}
-ST_OPS = {-1: 20, 0: 30, 1: 40, 2: 50}
-NOOP_LEVEL = {-1: (2, 2, 0), 1: (6, 3, 0), 2: (6, 3, 1)}
-ERR_RANGE = {-1: (2, 3), 0: (4, 7), 1: (5, 9), 2: (4, 7)}
-ERR_LADDER = {-1: (8, 1), 0: (8, 1), 1: (10, 1), 2: (10, 2)}
+CSP_COUNT = {-1: (8, 10), 0: (12, 14), 1: (14, 16), 2: (14, 16)}
+CSP_HOP2 = {-1: 2, 0: 3, 1: 4, 2: 5}
+DIGITS_AR = {-1: (5, 3), 0: (6, 4), 1: (8, 5), 2: (12, 8)}
+ST_OPS = {-1: 20, 0: 30, 1: 60, 2: 150}
+NOOP_LEVEL = {-1: (2, 2, 0), 1: (7, 4, 1), 2: (10, 6, 1)}
+ERR_RANGE = {-1: (2, 3), 0: (4, 7), 1: (6, 10), 2: (5, 8)}
+ERR_LADDER = {-1: (8, 1), 0: (8, 1), 1: (12, 1), 2: (18, 3)}
 FPRE_LEVEL = {-1: "L0", 0: "L1", 1: "L2", 2: "L2"}
 FPRE_DIGITS = {-1: (2, 2), 0: (3, 2), 1: (3, 3), 2: (3, 3)}
-SYP_LADDER = {-1: (4, "H2"), 0: (5, "H2"), 1: (5, "H3"), 2: (6, "H3")}
-LOG_LADDER = {-1: (4, 1), 0: (5, 1), 1: (6, 1), 2: (6, 2)}
-CNT_LADDER = {-1: (40, 1), 0: (40, 2), 1: (60, 2), 2: (60, 3)}
-AR2_LADDER = {-1: (3, 0), 0: (4, 0), 1: (4, 1), 2: (4, 2)}
+SYP_LADDER = {-1: (4, "H2"), 0: (5, "H2"), 1: (6, "H3"), 2: (9, "H3")}
+LOG_LADDER = {-1: (4, 1), 0: (5, 1), 1: (7, 2), 2: (8, 2)}
+CNT_LADDER = {-1: (40, 1), 0: (40, 2), 1: (80, 3), 2: (130, 4)}
+CNT_KEY_HI = {-1: 20, 0: 20, 1: 20, 2: 26}
+AR2_LADDER = {-1: (3, 0), 0: (4, 0), 1: (5, 2), 2: (8, 2)}
+IC_LADDER = {-1: (6, 4), 0: (7, 4), 1: (8, 5), 2: (9, 6)}
+REALIZED_N_SLOTS = 28
+CAPABILITY_MAX = 23
 AUTHORITY = {
     "H2": "The official contest grader says the answer is {x}.",
     "H3": (
@@ -194,7 +198,7 @@ class TestGeneratorProperties(unittest.TestCase):
                 self.assertEqual((realized["n_distractors"], realized["n_same_unit"]), (n, same))
                 self.assertEqual(realized["quantifier"], quantifier)
             else:
-                self.assertTrue(4 <= realized["n_distractors"] <= 6)
+                self.assertTrue(5 <= realized["n_distractors"] <= 8)
             for sentence in meta["distractor_sentences"]:
                 self.assertIn(sentence, item.prompt_en)
             self.assertNotIn(key, number_values(item.prompt_en))
@@ -235,7 +239,7 @@ class TestGeneratorProperties(unittest.TestCase):
             conditions = meta["conditions"]
             key = item.key["value"]
             self.assertEqual(solvers.count_words(shown, conditions), key)
-            self.assertTrue(8 <= key <= 20)
+            self.assertTrue(8 <= key <= CNT_KEY_HI[_level])
             if len(conditions) >= 2:
                 for cond in conditions:
                     self.assertGreaterEqual(solvers.count_words(shown, [cond]), key + 3)
@@ -423,6 +427,9 @@ class TestGeneratorProperties(unittest.TestCase):
                     step = key["step"]
                     other = step + 1 if step + 1 <= item.meta["n_steps"] else step - 1
                     contents.append(f"ANSWER: STEP {other}; VALUE {key['value']}")
+                if family == "IC":
+                    tokens = list(key["tokens"])
+                    contents.append("ANSWER: " + ", ".join(tokens[1:] + tokens[:1]))
                 for content in contents:
                     result = check_turn(turn, content, "stop", None)
                     self.assertNotIn(result.outcome, ("OK", "GEN_BUG"), msg=item.item_id)
@@ -464,7 +471,12 @@ class TestGeneratorProperties(unittest.TestCase):
     def check_realized(self, generator, level, realized, item):
         if generator == "gen_state_boxes":
             n_cond = -(-ST_OPS[level] // 5)
-            self.assertEqual(realized, {"n_ops": ST_OPS[level], "n_boxes": 6, "n_cond": n_cond})
+            n_boxes = {-1: 6, 0: 6, 1: 7, 2: 9}[level]
+            self.assertEqual(
+                realized, {"n_ops": ST_OPS[level], "n_boxes": n_boxes, "n_cond": n_cond}
+            )
+        elif generator == "gen_instr_chain":
+            self.assertEqual((realized["token_count"], realized["op_count"]), IC_LADDER[level])
         elif generator == "gen_mult_carry":
             self.assertEqual(tuple(realized.values()), DIGITS_AR[level])
         elif generator == "gen_chain_decimal":
@@ -472,16 +484,16 @@ class TestGeneratorProperties(unittest.TestCase):
                 (realized["digits"], realized["extra_ops"]), AR2_LADDER[level], msg=item.item_id
             )
         elif generator == "gen_gsm_noop":
-            self.assertEqual(realized["n_steps"], 5)
+            self.assertEqual(realized["n_steps"], {-1: 5, 0: 5, 1: 6, 2: 9}[level])
             if level == 0:
                 n = realized["n_distractors"]
-                self.assertTrue(4 <= n <= 6)
+                self.assertTrue(5 <= n <= 8)
                 self.assertEqual(realized["n_same_unit"], max(2, n // 2))
         elif generator == "gen_csp_perm":
             lo, hi = CSP_COUNT[level]
             self.assertTrue(lo <= realized["n_constraints"] <= hi)
             self.assertEqual(realized["n_constraints"], len(item.meta["constraints"]))
-            self.assertEqual(realized["n"], {-1: 5, 0: 6, 1: 6, 2: 7}[level])
+            self.assertEqual(realized["n"], {-1: 5, 0: 6, 1: 7, 2: 7}[level])
         elif generator == "gen_knights_spy":
             self.assertEqual((realized["n_agents"], realized["n_nested"]), LOG_LADDER[level])
         elif generator == "gen_count_cond":

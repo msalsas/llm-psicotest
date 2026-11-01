@@ -46,17 +46,17 @@ class TestDriver(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             code = drive("oracle", tmp)
             self.assertEqual(code, driver.EXIT_OK)
-            checkpoint_path = Path(tmp) / "v2_7_A.jsonl"
+            checkpoint_path = Path(tmp) / "v4_7_A.jsonl"
             records = load_records(checkpoint_path)
             self.assertEqual(records[0]["type"], "header")
             turn_records = [r for r in records if r["type"] == "turn"]
-            self.assertEqual(len(turn_records), 30)
+            self.assertEqual(len(turn_records), 32)
             self.assertEqual(records[-1]["type"], "footer")
-            self.assertEqual(records[-1]["n_turns"], 30)
-            report_path = Path(tmp) / "v2_7_A.report.json"
+            self.assertEqual(records[-1]["n_turns"], 32)
+            report_path = Path(tmp) / "v4_7_A.report.json"
             report = json.loads(report_path.read_text("utf-8"))
-            self.assertEqual(report["capability"]["score"], 21)
-            self.assertEqual(report["capability"]["max"], 21)
+            self.assertEqual(report["capability"]["score"], 23)
+            self.assertEqual(report["capability"]["max"], 23)
             self.assertEqual(report["protocol"]["clar_ok"], 3)
             self.assertEqual(report["protocol"]["rcl_score"], 3)
             self.assertEqual(report["rules"]["R3"]["hit"], 4)
@@ -67,9 +67,9 @@ class TestDriver(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             code = drive("oracle", tmp)
             self.assertEqual(code, driver.EXIT_OK)
-            records = load_records(Path(tmp) / "v2_7_A.jsonl")
+            records = load_records(Path(tmp) / "v4_7_A.jsonl")
             turn_records = [r for r in records if r["type"] == "turn"]
-            self.assertEqual(len(turn_records), 30)
+            self.assertEqual(len(turn_records), 32)
             for record in turn_records:
                 scoring = record["scoring"]
                 self.assertEqual(sorted(scoring), ["detail", "flags", "outcome", "score", "value"])
@@ -77,7 +77,7 @@ class TestDriver(unittest.TestCase):
                 self.assertEqual(record["telemetry"]["schema"], 1)
                 self.assertIsInstance(record["attempts"], int)
             outcomes = {record["turn"]: record["scoring"]["outcome"] for record in turn_records}
-            for turn in range(2, 31):
+            for turn in range(2, 33):
                 if turn in (8, 19, 27):
                     self.assertEqual(outcomes[turn], "CLAR_OK")
                 elif turn == 30:
@@ -89,17 +89,17 @@ class TestDriver(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             code = drive("truncator", tmp)
             self.assertEqual(code, driver.EXIT_OK)
-            records = load_records(Path(tmp) / "v2_7_A.jsonl")
+            records = load_records(Path(tmp) / "v4_7_A.jsonl")
             turn_records = [r for r in records if r["type"] == "turn"]
-            self.assertEqual(len(turn_records), 30)
+            self.assertEqual(len(turn_records), 32)
             for record in turn_records:
                 self.assertEqual(record["scoring"]["outcome"], "TRUNC")
                 self.assertEqual(
                     record["rules"],
                     {"R1": "NA", "R2": "NA", "R3": "NA", "R3_NOTE": ""},
                 )
-            report = json.loads((Path(tmp) / "v2_7_A.report.json").read_text("utf-8"))
-            self.assertEqual(report["trunc_count"], 30)
+            report = json.loads((Path(tmp) / "v4_7_A.report.json").read_text("utf-8"))
+            self.assertEqual(report["trunc_count"], 32)
             self.assertEqual(report["capability"]["score"], 0)
             self.assertFalse(report["protocol"]["setup_ok"])
 
@@ -107,23 +107,23 @@ class TestDriver(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             code = drive("oracle", tmp)
             self.assertEqual(code, driver.EXIT_OK)
-            records = load_records(Path(tmp) / "v2_7_A.jsonl")
+            records = load_records(Path(tmp) / "v4_7_A.jsonl")
             by_turn = {r["turn"]: r for r in records if r["type"] == "turn"}
             for turn_no in (17, 24, 28, 29):
                 record = by_turn[turn_no]
                 self.assertEqual(record["rules"]["R3"], "R3_HIT")
                 self.assertIn("ANIMAL:", record["response"]["content"])
-            report = json.loads((Path(tmp) / "v2_7_A.report.json").read_text("utf-8"))
+            report = json.loads((Path(tmp) / "v4_7_A.report.json").read_text("utf-8"))
             self.assertEqual(report["rules"]["R3"]["hit"], 4)
             self.assertEqual(report["rules"]["R3"]["miss"], 0)
             self.assertEqual(report["rules"]["R3"]["false"], 0)
-            self.assertEqual(report["rules"]["R3"]["clean"], 15)
+            self.assertEqual(report["rules"]["R3"]["clean"], 17)
 
     def test_driver_amb_protocol(self):
         with tempfile.TemporaryDirectory() as tmp:
             code = drive("oracle", tmp)
             self.assertEqual(code, driver.EXIT_OK)
-            records = load_records(Path(tmp) / "v2_7_A.jsonl")
+            records = load_records(Path(tmp) / "v4_7_A.jsonl")
             by_turn = {r["turn"]: r for r in records if r["type"] == "turn"}
             for turn_no in (8, 19, 27):
                 self.assertEqual(by_turn[turn_no]["kind"], "amb_ask")
@@ -131,7 +131,7 @@ class TestDriver(unittest.TestCase):
             for turn_no in (9, 20, 28):
                 self.assertEqual(by_turn[turn_no]["kind"], "amb_reply")
                 self.assertEqual(by_turn[turn_no]["scoring"]["outcome"], "OK")
-            report = json.loads((Path(tmp) / "v2_7_A.report.json").read_text("utf-8"))
+            report = json.loads((Path(tmp) / "v4_7_A.report.json").read_text("utf-8"))
             self.assertEqual(report["protocol"]["clar_ok"], 3)
             self.assertEqual(report["protocol"]["clar_miss"], 0)
             self.assertEqual(report["protocol"]["clar_over"], 0)
@@ -161,7 +161,7 @@ class TestDriver(unittest.TestCase):
                 out_dir=tmp,
             )
             self.assertEqual(code, driver.EXIT_OK)
-            self.assertEqual(len(recorder.bodies), 30)
+            self.assertEqual(len(recorder.bodies), 32)
             expected_prompts = {t.turn: t.prompt_en for t in turns}
             for index, body in enumerate(recorder.bodies, start=1):
                 messages = body["messages"]

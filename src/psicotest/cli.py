@@ -14,7 +14,7 @@ def main(argv=None) -> int:
     run_parser.add_argument("--order", default="A", choices=["A", "B"])
     run_parser.add_argument("--out", default="runs")
     run_parser.add_argument("--max-tokens", type=int, default=6144)
-    run_parser.add_argument("--timeout", type=float, default=120)
+    run_parser.add_argument("--timeout", type=float, default=240)
     run_parser.add_argument("--key-env", default="PSICOTEST_API_KEY")
     run_parser.add_argument("--auth", default="bearer", choices=["bearer", "x-api-key"])
     run_parser.add_argument("--resume", action="store_true")

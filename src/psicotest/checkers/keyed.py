@@ -77,6 +77,30 @@ def check_st(content, finish_reason, reasoning, item):
     return make_result("OK", found, flags, ";".join(details))
 
 
+def check_ic(content, finish_reason, reasoning, item):
+    pre, early = schema.begin(content, finish_reason, reasoning, item, "IC")
+    if early is not None:
+        return early
+    if pre.ext.value is None:
+        return make_result("NOANS", None, reasoning_flags(pre), "")
+    segments = [seg.strip() for seg in pre.ext.value.split(",")]
+    expected = [fold(tok) for tok in item.key["tokens"]]
+    parsed = [fold(seg) for seg in segments]
+    flags = set(pre.flags)
+    details = []
+    if any(seg == "" for seg in segments):
+        flags.add("FMT")
+        details.append("empty")
+    if any(" " in seg for seg in segments):
+        flags.add("FMT")
+        details.append("multi_word")
+    flags.add("R2_FAIL" if details else "R2_OK")
+    if parsed != expected:
+        details.append("count_mismatch" if len(parsed) != len(expected) else "mismatch")
+        return make_result("WRONG", parsed, flags, ";".join(details))
+    return make_result("OK", parsed, flags, ";".join(details))
+
+
 def check_csp(content, finish_reason, reasoning, item):
     pre, early = schema.begin(content, finish_reason, reasoning, item, "CSP")
     if early is not None:

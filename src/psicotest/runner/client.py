@@ -13,6 +13,7 @@ RETRY_DELAYS = (10, 30, 90)
 MAX_ATTEMPTS = 4
 RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
 DEFAULT_MAX_TOKENS = 6144
+DEFAULT_TIMEOUT = 240
 DEFAULT_TEMPERATURE = 6 / 10
 DEFAULT_TOP_P = 95 / 100
 
@@ -70,7 +71,7 @@ class Client:
         model: str,
         api_key: str,
         auth_scheme: str = "bearer",
-        timeout: "float" = 120,
+        timeout: "float" = DEFAULT_TIMEOUT,
     ):
         if auth_scheme not in ("bearer", "x-api-key"):
             raise ValueError("unknown auth scheme")

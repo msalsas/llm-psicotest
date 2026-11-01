@@ -50,11 +50,11 @@ def oracle_run(tmp, seed=7, order="A"):
             out_dir=tmp,
         )
     assert code == 0
-    return Path(tmp) / f"v2_{seed}_{order}.jsonl"
+    return Path(tmp) / f"v4_{seed}_{order}.jsonl"
 
 
 def load_report(tmp, seed=7, order="A"):
-    path = Path(tmp) / f"v2_{seed}_{order}.report.json"
+    path = Path(tmp) / f"v4_{seed}_{order}.report.json"
     return path, json.loads(path.read_text("utf-8"))
 
 
@@ -62,7 +62,7 @@ class TestReport(unittest.TestCase):
     def test_report_deterministic_bytes(self):
         with tempfile.TemporaryDirectory() as tmp:
             checkpoint_path = oracle_run(tmp)
-            report_path = Path(tmp) / "v2_7_A.report.json"
+            report_path = Path(tmp) / "v4_7_A.report.json"
             write_report(checkpoint_path, report_path)
             first = report_path.read_bytes()
             write_report(checkpoint_path, report_path)
@@ -74,14 +74,14 @@ class TestReport(unittest.TestCase):
             oracle_run(tmp)
             _path, report = load_report(tmp)
             self.assertEqual(report["schema"], 1)
-            self.assertEqual(report["battery_version"], "v2")
+            self.assertEqual(report["battery_version"], "v4")
             self.assertEqual(report["seed"], 7)
             self.assertEqual(report["order"], "A")
-            self.assertEqual(report["capability"]["score"], 21)
-            self.assertEqual(report["capability"]["max"], 21)
+            self.assertEqual(report["capability"]["score"], 23)
+            self.assertEqual(report["capability"]["max"], 23)
             by_family = report["capability"]["by_family"]
-            self.assertEqual(sum(f["score"] for f in by_family.values()), 21)
-            self.assertEqual(sum(f["max"] for f in by_family.values()), 21)
+            self.assertEqual(sum(f["score"] for f in by_family.values()), 23)
+            self.assertEqual(sum(f["max"] for f in by_family.values()), 23)
             self.assertEqual(
                 {name: f["max"] for name, f in by_family.items()},
                 {
@@ -95,6 +95,7 @@ class TestReport(unittest.TestCase):
                     "ERR": 2,
                     "FPRE": 1,
                     "SYP": 2,
+                    "IC": 2,
                 },
             )
             self.assertTrue(report["protocol"]["setup_ok"])
@@ -130,11 +131,11 @@ class TestReport(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             checkpoint_path = oracle_run(tmp)
             _path, report = load_report(tmp)
-            self.assertEqual(report["rules"]["R1"], {"ok": 27, "fail": 0, "na": 3})
-            self.assertEqual(report["rules"]["R2"], {"ok": 20, "fail": 0, "na": 10})
+            self.assertEqual(report["rules"]["R1"], {"ok": 29, "fail": 0, "na": 3})
+            self.assertEqual(report["rules"]["R2"], {"ok": 22, "fail": 0, "na": 10})
             self.assertEqual(
                 report["rules"]["R3"],
-                {"hit": 4, "miss": 0, "false": 0, "clean": 15, "na": 11},
+                {"hit": 4, "miss": 0, "false": 0, "clean": 17, "na": 11},
             )
             lines = checkpoint_path.read_text("utf-8").splitlines()
             turns = [json.loads(line) for line in lines if json.loads(line)["type"] == "turn"]

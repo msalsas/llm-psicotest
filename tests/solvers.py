@@ -238,3 +238,22 @@ def mult_density(a, b):
 def half_up(num, den):
     q = (2 * num * 100 + den) // (2 * den)
     return Decimal(f"{q // 100}.{q % 100:02d}")
+
+
+def ic_apply(tokens, ops):
+    out = list(tokens)
+    for op in ops:
+        kind = op["kind"]
+        if kind == "reverse":
+            out.reverse()
+        elif kind == "rotate":
+            k = op["k"] % len(out)
+            out = out[-k:] + out[:-k]
+        elif kind == "replace":
+            out = [op["new"] if t == op["old"] else t for t in out]
+        elif kind == "swap":
+            i, j = op["i"] - 1, op["j"] - 1
+            out[i], out[j] = out[j], out[i]
+        else:
+            out.append(out.pop(op["i"] - 1))
+    return out

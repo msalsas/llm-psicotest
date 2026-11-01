@@ -13,7 +13,7 @@ from psicotest.spec import Turn, canonical_json
 
 def build_item(level, seed):
     return make_item(
-        battery="v4",
+        battery="v5",
         slot="S27",
         generator="gen_instr_chain",
         knobs={"level": level},

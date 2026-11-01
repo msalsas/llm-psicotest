@@ -43,6 +43,8 @@ class TestCheckersCommon(unittest.TestCase):
                 "IC",
                 "LOG",
                 "NOOP",
+                "PC",
+                "PR",
                 "RCL",
                 "SETUP",
                 "ST",

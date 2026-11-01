@@ -7,6 +7,7 @@ from psicotest.checkers.text import NUMBER_WORDS, fold
 
 RESP_LINE_RE = re.compile(r"^\s*ANSWER\s*:\s*(.+?)\s*\.?\s*$", re.IGNORECASE)
 CLAR_LINE_RE = re.compile(r"^\s*CLARIFICATION\s*:\s*(.*?)\s*$", re.IGNORECASE)
+BLOCK_RE = re.compile(r"^BEGIN\s*\n(.*?)\n\s*END\s*$", re.MULTILINE | re.DOTALL)
 BOXED_RE = re.compile(r"\\boxed\{([^{}]*)\}")
 NUM_TOKEN_RE = re.compile(r"(?<![\w.,])[+-]?\d(?:[\d.,]*\d)?(?!\w)")
 NUM_ANY_RE = re.compile(r"\d(?:[\d.,]*\d)?")
@@ -48,6 +49,20 @@ class Extraction:
     n_resp: int
     last_line_ok: bool
     multi: bool
+
+
+def extract_block(content: str | None) -> tuple[str | None, list[str]]:
+    """Extract prose content from a BEGIN/END block.
+
+    Returns (extracted_text, flags); extracted_text is None with flags
+    ["no_block"] when no valid block is found.
+    """
+    if content is None:
+        return None, ["no_block"]
+    match = BLOCK_RE.search(content)
+    if match is None:
+        return None, ["no_block"]
+    return match.group(1).strip(), []
 
 
 def extract_answer(content: str | None) -> Extraction:

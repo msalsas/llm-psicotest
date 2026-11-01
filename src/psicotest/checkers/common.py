@@ -15,7 +15,21 @@ from psicotest.checkers.extract import (
 from psicotest.checkers.telemetry import has_loop
 from psicotest.spec import CheckResult
 
-CAPABILITY_FAMILIES = ("ST", "AR", "AR2", "NOOP", "CSP", "LOG", "CNT", "ERR", "FPRE", "SYP", "IC")
+CAPABILITY_FAMILIES = (
+    "ST",
+    "AR",
+    "AR2",
+    "NOOP",
+    "CSP",
+    "LOG",
+    "CNT",
+    "ERR",
+    "FPRE",
+    "SYP",
+    "IC",
+    "PR",
+    "PC",
+)
 PROTOCOL_FAMILIES = ("AMB", "AMBC", "RCL")
 R2_FAMILIES = ("ST", "AR", "AR2", "NOOP", "CNT", "ERR", "FPRE", "SYP", "AMBR", "AMBC")
 OUTCOMES = (
@@ -57,6 +71,8 @@ ANSWER_KINDS = {
     "FPRE": "int",
     "SYP": "int",
     "IC": "list",
+    "PR": "block",
+    "PC": "line",
     "AMB": "clar",
     "AMBC": "num",
     "RCL": "recall",

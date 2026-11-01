@@ -7,7 +7,7 @@ from fractions import Fraction
 
 from psicotest.rng import Rng
 
-VARIANTS = ("base", "clean", "relabel")
+VARIANTS = ("base", "clean", "relabel", "pc1", "pc2")
 GENERATOR_NAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 FAMILY_RE = re.compile(r"^[A-Z][A-Z0-9]*$")
 ANIMAL_RE = re.compile(r"^[a-z]+$")

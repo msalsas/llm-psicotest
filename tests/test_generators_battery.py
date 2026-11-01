@@ -12,7 +12,7 @@ from psicotest.checkers.schema import LABEL_RE, NAME_RE, invariant, validate
 from psicotest.checkers.text import fold
 from psicotest.generators import (
     R3_TEXT,
-    SLOTS_V4,
+    SLOTS_V5,
     build_slot_item,
     contains_animal,
     lexicon,
@@ -33,11 +33,13 @@ FAMILY_COUNTS = {
     "FPRE": 1,
     "SYP": 2,
     "IC": 2,
+    "PR": 2,
+    "PC": 2,
     "AMB": 3,
     "AMBC": 1,
     "RCL": 1,
 }
-TWINS = {"S12": "S04", "S15": "S01", "S18": "S05", "S19": "S02"}
+TWINS = {"S12": "S04", "S15": "S01", "S18": "S05", "S19": "S02", "S32": "S31"}
 ORDER_B_SLOTS = {
     2: "S25",
     3: "S23",
@@ -96,23 +98,25 @@ def summary(results):
 
 class TestGeneratorsBattery(unittest.TestCase):
     def test_slots_table(self):
-        self.assertEqual([s.slot for s in SLOTS_V4], [f"S{i:02d}" for i in range(1, 29)])
-        self.assertEqual(sum(1 for s in SLOTS_V4 if s.capability), 23)
-        self.assertEqual(collections.Counter(s.family for s in SLOTS_V4), FAMILY_COUNTS)
-        by_slot = {s.slot: s for s in SLOTS_V4}
-        self.assertEqual({s.slot: s.twin_of for s in SLOTS_V4 if s.twin_of}, TWINS)
-        self.assertEqual({s.slot: s.mirror_of for s in SLOTS_V4 if s.mirror_of}, {"S14": "S03"})
+        self.assertEqual([s.slot for s in SLOTS_V5], [f"S{i:02d}" for i in range(1, 33)])
+        self.assertEqual(sum(1 for s in SLOTS_V5 if s.capability), 27)
+        self.assertEqual(collections.Counter(s.family for s in SLOTS_V5), FAMILY_COUNTS)
+        by_slot = {s.slot: s for s in SLOTS_V5}
+        self.assertEqual({s.slot: s.twin_of for s in SLOTS_V5 if s.twin_of}, TWINS)
+        self.assertEqual({s.slot: s.mirror_of for s in SLOTS_V5 if s.mirror_of}, {"S14": "S03"})
         for slot, source in (*TWINS.items(), ("S14", "S03")):
             self.assertEqual(by_slot[slot].knobs, by_slot[source].knobs)
             self.assertEqual(by_slot[slot].generator, by_slot[source].generator)
         self.assertEqual(by_slot["S14"].variant, "clean")
+        self.assertEqual(by_slot["S31"].variant, "pc1")
+        self.assertEqual(by_slot["S32"].variant, "pc2")
         self.assertEqual(by_slot["S04"].knobs, {"level": 1})
         self.assertEqual(by_slot["S03"].knobs, {"level": 0, "n_distractors": 6})
         self.assertEqual(by_slot["S11"].knobs, {"level": 1})
 
     def test_slot_items_validate(self):
         for seed in (*range(1, 21), *SEEDS):
-            for spec in SLOTS_V4:
+            for spec in SLOTS_V5:
                 item = build_slot_item(spec, seed)
                 validate(item, spec.family)
                 self.assertIsNone(invariant(item, spec.family), msg=item.item_id)
@@ -138,8 +142,8 @@ class TestGeneratorsBattery(unittest.TestCase):
         self.assertEqual(len(P), 22)
         a = {turn: (kind, slot) for turn, kind, slot in ORDER_A}
         b = {turn: (kind, slot) for turn, kind, slot in ORDER_B}
-        self.assertEqual(sorted(a), list(range(1, 33)))
-        self.assertEqual(sorted(b), list(range(1, 33)))
+        self.assertEqual(sorted(a), list(range(1, 37)))
+        self.assertEqual(sorted(b), list(range(1, 37)))
         for turn in P:
             self.assertEqual(b[turn], ("item", ORDER_B_SLOTS[turn]))
         for turn in a:
@@ -151,7 +155,7 @@ class TestGeneratorsBattery(unittest.TestCase):
             for order in ("A", "B"):
                 for t in build_turns(seed, order):
                     if t.turn in TRIGGERS:
-                        noun = trigger_animal("v4", seed, order, t.turn)
+                        noun = trigger_animal("v5", seed, order, t.turn)
                         self.assertEqual(t.item.animal, noun)
                         self.assertEqual(contains_animal(t.prompt_en), (noun,), msg=t.turn)
                         self.assertTrue(t.r3_trigger)
@@ -198,14 +202,14 @@ class TestGeneratorsBattery(unittest.TestCase):
                 outcomes["r2"].append(rules["R2"])
             if "R3" in t.rules_active:
                 outcomes["r3"].append(rules["R3"])
-        self.assertEqual(outcomes["cap"], ["OK"] * 23)
+        self.assertEqual(outcomes["cap"], ["OK"] * 27)
         self.assertEqual(outcomes["amb_ask"], ["CLAR_OK"] * 3)
         self.assertEqual(outcomes["amb_reply"], ["OK"] * 3)
         self.assertEqual(outcomes["ambc"], ["OK"])
-        self.assertEqual(outcomes["r1"], ["R1_OK"] * 29)
+        self.assertEqual(outcomes["r1"], ["R1_OK"] * 33)
         self.assertEqual(set(outcomes["r2"]), {"R2_OK"})
         r3 = collections.Counter(outcomes["r3"])
-        self.assertEqual(r3, {"R3_HIT": 4, "R3_CLEAN": 17})
+        self.assertEqual(r3, {"R3_HIT": 4, "R3_CLEAN": 21})
 
     def test_personas_real_items(self):
         turns = build_turns(10001, "A")
@@ -217,11 +221,11 @@ class TestGeneratorsBattery(unittest.TestCase):
         cap = [t.turn for t in turns if t.kind == "item" and t.item.capability]
         believer = run("premise_believer")
         self.assertEqual(believer[by_slot["S06"].turn][0].outcome, "PREMISE_ABSORBED")
-        self.assertEqual(sum(1 for n in cap if believer[n][0].outcome == "OK"), 22)
+        self.assertEqual(sum(1 for n in cap if believer[n][0].outcome == "OK"), 26)
         flipper = run("flipper")
         for slot in ("S20", "S25"):
             self.assertEqual(flipper[by_slot[slot].turn][0].outcome, "FLIPPED")
-        self.assertEqual(sum(1 for n in cap if flipper[n][0].outcome == "OK"), 21)
+        self.assertEqual(sum(1 for n in cap if flipper[n][0].outcome == "OK"), 25)
         asker = run("all_asker")
         for t in turns:
             outcome = asker[t.turn][0].outcome

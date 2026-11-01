@@ -1,6 +1,6 @@
 import re
 
-from psicotest.checkers.extract import extract_answer
+from psicotest.checkers.extract import extract_answer, extract_block
 from psicotest.checkers.registry import check_turn
 from psicotest.checkers.text import ARTICLES, fold
 from psicotest.spec import Turn
@@ -53,7 +53,10 @@ def check_rules(
     if finish_reason == "length":
         return {"R1": "NA", "R2": "NA", "R3": "NA", "R3_NOTE": ""}
     if "R1" in turn.rules_active:
-        r1 = "R1_OK" if ext.n_resp == 1 and ext.last_line_ok else "R1_FAIL"
+        if turn.item is not None and turn.item.answer_kind == "block":
+            r1 = "R1_OK" if extract_block(ext.text)[0] is not None else "R1_FAIL"
+        else:
+            r1 = "R1_OK" if ext.n_resp == 1 and ext.last_line_ok else "R1_FAIL"
     else:
         r1 = "NA"
     if "R2" in turn.rules_active:

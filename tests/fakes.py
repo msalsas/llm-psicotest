@@ -67,6 +67,8 @@ def oracle_value(turn: Turn) -> str:
         return f"STEP {key['step']}; VALUE {format_en(key['value'])}"
     if family == "IC":
         return ", ".join(key["tokens"])
+    if family == "PC":
+        return key["value"]
     return format_en(key["value"])
 
 
@@ -85,6 +87,8 @@ def _oracle_content(turn: Turn, value: str | None = None) -> str:
         return f"CLARIFICATION: What is the {item.meta['synonyms'][0]}?"
     if kind == "recall":
         return RCL_ORACLE
+    if item.family == "PR":
+        return f"BEGIN\n{item.meta['proof']}\nEND"
     if value is None:
         value = oracle_value(turn)
     lines = [ORACLE_PREAMBLE]

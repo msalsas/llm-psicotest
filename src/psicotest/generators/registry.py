@@ -12,6 +12,8 @@ from psicotest.generators.knights_spy import gen_knights_spy
 from psicotest.generators.missing_datum import gen_missing_datum
 from psicotest.generators.mult_carry import gen_mult_carry
 from psicotest.generators.planted_error import gen_planted_error
+from psicotest.generators.prose_block import gen_prose_block
+from psicotest.generators.prose_consistency import gen_prose_consistency
 from psicotest.generators.rules_text import rules_recall, setup_rules
 from psicotest.generators.state_boxes import gen_state_boxes
 from psicotest.spec import GeneratorSpec, Item
@@ -30,6 +32,8 @@ GENERATORS: dict[str, tuple[Callable, int]] = {
     "gen_instr_chain": (gen_instr_chain, 1),
     "gen_missing_datum": (gen_missing_datum, 1),
     "gen_derivable_datum": (gen_derivable_datum, 1),
+    "gen_prose_block": (gen_prose_block, 1),
+    "gen_prose_consistency": (gen_prose_consistency, 1),
     "setup_rules": (setup_rules, 1),
     "rules_recall": (rules_recall, 1),
 }
@@ -48,6 +52,8 @@ _FAMILIES = {
     "gen_instr_chain": ("IC", ("base",), (-1, 0, 1, 2)),
     "gen_missing_datum": ("AMB", ("base", "relabel"), (0,)),
     "gen_derivable_datum": ("AMBC", ("base", "relabel"), (0,)),
+    "gen_prose_block": ("PR", ("base",), (-1, 0, 1, 2)),
+    "gen_prose_consistency": ("PC", ("base", "pc1", "pc2"), (0,)),
     "setup_rules": ("SETUP", ("base",), (0,)),
     "rules_recall": ("RCL", ("base",), (0,)),
 }
@@ -61,7 +67,7 @@ START_KNOBS: dict[str, dict] = {name: {"level": 0} for name in GENERATORS}
 GOLDEN_SEEDS = (1, 2, 3, 42, 1000)
 GOLDEN_ANIMAL = "sheep"
 RULE_GENERATORS = ("setup_rules", "rules_recall")
-BATTERY = "v4"
+BATTERY = "v5"
 
 
 def golden_items() -> dict[str, Item]:

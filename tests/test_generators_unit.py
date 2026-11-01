@@ -37,6 +37,8 @@ NAMES = [
     "gen_missing_datum",
     "gen_mult_carry",
     "gen_planted_error",
+    "gen_prose_block",
+    "gen_prose_consistency",
     "gen_state_boxes",
     "rules_recall",
     "setup_rules",
@@ -55,6 +57,8 @@ FAMILIES = {
     "gen_instr_chain": ("IC", ("base",)),
     "gen_missing_datum": ("AMB", ("base", "relabel")),
     "gen_derivable_datum": ("AMBC", ("base", "relabel")),
+    "gen_prose_block": ("PR", ("base",)),
+    "gen_prose_consistency": ("PC", ("base", "pc1", "pc2")),
     "setup_rules": ("SETUP", ("base",)),
     "rules_recall": ("RCL", ("base",)),
 }
@@ -77,7 +81,7 @@ def build(generator, seed, variant="base", animal=None):
 class TestGeneratorsUnit(unittest.TestCase):
     def test_registry(self):
         self.assertEqual(sorted(GENERATORS), sorted(NAMES))
-        self.assertEqual(len(GENERATORS), 15)
+        self.assertEqual(len(GENERATORS), 17)
         for name, (family, variants) in FAMILIES.items():
             self.assertEqual(GENERATORS[name][1], 1)
             self.assertEqual(SPECS[name].family, family)

@@ -40,6 +40,24 @@ class FakeAnswer:
     finish_reason: str
 
 
+IV_ORACLE = (
+    "A good workspace starts with plenty of natural light and a quiet corner. "
+    "Noise breaks my focus faster than any other single distraction does. "
+    "I also like a desk that stays tidy, because clutter pulls my attention away. "
+    "Comfortable seating matters more than most people admit during long afternoons. "
+    "When my back hurts, my thinking gets shallow and my patience runs short. "
+    "A small plant and a window view give my eyes somewhere calm to rest. "
+    "Learning works similarly, since steady habits beat bursts of heroic effort. "
+    "Some people thrive with an instructor who sets the pace and answers questions. "
+    "Others prefer to wander through books and videos, following whatever sparks curiosity. "
+    "Neither route is wrong, but the structure of lessons rescues many busy beginners. "
+    "Fast decisions help when delay costs more than a small mistake would. "
+    "Experience teaches us which choices are easy to reverse and which are not. "
+    "Written messages leave a record, which protects everyone from fuzzy memories later. "
+    "Spoken conversation carries tone, and tone often defuses a tense disagreement quickly."
+)
+
+
 def format_en(x: int | Decimal) -> str:
     if isinstance(x, int):
         return str(x)
@@ -89,6 +107,8 @@ def _oracle_content(turn: Turn, value: str | None = None) -> str:
         return RCL_ORACLE
     if item.family == "PR":
         return f"BEGIN\n{item.meta['proof']}\nEND"
+    if item.family == "IV":
+        return f"BEGIN\n{IV_ORACLE}\nEND"
     if value is None:
         value = oracle_value(turn)
     lines = [ORACLE_PREAMBLE]

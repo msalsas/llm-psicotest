@@ -45,6 +45,21 @@ PHRASE_POOL_L0: tuple[str, ...] = ("for now", "in short", "in truth", "with skil
 PHRASE_POOL_L1: tuple[str, ...] = ("all in all", "by far", "on hand", "in full")
 PHRASE_POOL_L2: tuple[str, ...] = ("in summary", "by all accounts", "in truth")
 
+# Level 3 (T5E D2-D4) reuses the hardest pair scheme of the ladder, BANNED_POOL_L1
+# (e, t). Every L3 entry also avoids a, so it is safe against any of e, a and t.
+TOPIC_POOL_L3: tuple[str, ...] = ("crisp morning",)
+PHRASE_POOL_L3: tuple[str, ...] = (
+    "in full",
+    "much joy",
+    "on song",
+    "so long",
+    "no fuss",
+    "our own",
+    "up high",
+)
+START_WORD_POOL_L3: tuple[str, ...] = ("cold", "bold")
+L3_PHRASE_COUNT = 2
+
 BANNED_POOL_L0: tuple[str, ...] = ("e", "a")
 BANNED_POOL_L1: tuple[str, ...] = ("e", "t")
 BANNED_POOL_L2: tuple[str, ...] = ("e",)
@@ -87,6 +102,15 @@ _PROOFS: dict[int, str] = {
         "snowy winds bring bright joy in truth. "
         "snowy hills hold soft light and calm."
     ),
+    3: (
+        "Cold winds blow high upon crisp morning hills and gray lowlands, in full. "
+        "Bold cooks mix spicy soup and mushrooms from rich spring soil, much joy. "
+        "Long songs fill dim rooms during cold hours and slow humming, on song. "
+        "Dry wood burns in iron kilns, so long for our own firing. "
+        "Mild sun pours gold glow round grim windows and gray walls. "
+        "Slow clouds crawl up high across dim sky and far horizon. "
+        "Gold rings glow dimly upon worn soil and cool sand, no fuss."
+    ),
 }
 
 LADDER = {
@@ -94,6 +118,12 @@ LADDER = {
     0: {"word_count_min": 50, "word_count_max": 80, "sentence_count": 5},
     1: {"word_count_min": 40, "word_count_max": 60, "sentence_count": 6},
     2: {"word_count_min": 30, "word_count_max": 45, "sentence_count": 5},
+    3: {
+        "word_count_min": 80,
+        "word_count_max": 120,
+        "sentence_count": 6,
+        "sentence_count_max": 8,
+    },
 }
 OVERRIDES: dict[str, tuple[int, int]] = {}
 
@@ -102,19 +132,22 @@ _PHRASE_POOL_OF_LEVEL = {
     0: PHRASE_POOL_L0,
     1: PHRASE_POOL_L1,
     2: PHRASE_POOL_L2,
+    3: PHRASE_POOL_L3,
 }
 _BANNED_POOL_OF_LEVEL = {
     -1: BANNED_POOL_L0,
     0: BANNED_POOL_L0,
     1: BANNED_POOL_L1,
     2: BANNED_POOL_L2,
+    3: BANNED_POOL_L1,
 }
 _START_POOL_OF_LEVEL = {1: START_WORD_POOL_L1, 2: START_WORD_POOL_L2}
+_TOPIC_POOL_OF_LEVEL = {2: TOPIC_POOL_L2, 3: TOPIC_POOL_L3}
 
 
 def _draw(rng: Rng, level: int) -> dict:
     params = LADDER[level]
-    topics = TOPIC_POOL_L2 if level == 2 else TOPIC_POOL
+    topics = _TOPIC_POOL_OF_LEVEL.get(level, TOPIC_POOL)
     start_pool = _START_POOL_OF_LEVEL.get(level)
     constraints = {
         "topic": rng.choice(topics),
@@ -126,20 +159,42 @@ def _draw(rng: Rng, level: int) -> dict:
         "same_start_word": rng.choice(start_pool) if start_pool else None,
         "topic_lead": level == 2,
     }
+    if level == 3:
+        # The required_phrase draw above is superseded by the sampled phrase but must stay
+        # to preserve frozen outputs.
+        phrases = rng.sample(PHRASE_POOL_L3, L3_PHRASE_COUNT)
+        constraints["required_phrase"] = phrases[0]
+        constraints["required_phrases"] = phrases
+        constraints["sentence_count_max"] = params["sentence_count_max"]
+        constraints["start_words"] = list(START_WORD_POOL_L3)
+        constraints["distinct_starts"] = True
     return constraints
 
 
 def _paragraphs(constraints: dict) -> list[str]:
+    if "sentence_count_max" in constraints:
+        sentences_line = (
+            f"- Between {constraints['sentence_count']} and {constraints['sentence_count_max']} "
+            "sentences (each ends with a period or question mark)"
+        )
+    else:
+        sentences_line = (
+            f"- Exactly {constraints['sentence_count']} sentences "
+            "(each ends with a period or question mark)"
+        )
     lines = [
         f"- Word count: between {constraints['word_count_min']} and "
         f"{constraints['word_count_max']} words (inclusive)",
-        (
-            f"- Exactly {constraints['sentence_count']} sentences "
-            "(each ends with a period or question mark)"
-        ),
+        sentences_line,
         f"- Do not use the letter '{constraints['banned_letter']}' anywhere (case-insensitive)",
-        f'- Include the phrase "{constraints["required_phrase"]}" verbatim',
     ]
+    for phrase in constraints.get("required_phrases", [constraints["required_phrase"]]):
+        lines.append(f'- Include the phrase "{phrase}" verbatim')
+    if "start_words" in constraints:
+        for word in constraints["start_words"]:
+            lines.append(f'- Exactly one sentence must start with the word "{word}"')
+    if constraints.get("distinct_starts"):
+        lines.append("- Every sentence must start with a different letter (case-insensitive)")
     if constraints["same_start_word"] is not None:
         lines.append(
             f'- Every sentence must start with the word "{constraints["same_start_word"]}"'

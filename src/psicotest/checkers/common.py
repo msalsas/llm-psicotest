@@ -29,6 +29,7 @@ CAPABILITY_FAMILIES = (
     "IC",
     "PR",
     "PC",
+    "IV",
 )
 PROTOCOL_FAMILIES = ("AMB", "AMBC", "RCL")
 R2_FAMILIES = ("ST", "AR", "AR2", "NOOP", "CNT", "ERR", "FPRE", "SYP", "AMBR", "AMBC")
@@ -73,6 +74,7 @@ ANSWER_KINDS = {
     "IC": "list",
     "PR": "block",
     "PC": "line",
+    "IV": "block",
     "AMB": "clar",
     "AMBC": "num",
     "RCL": "recall",

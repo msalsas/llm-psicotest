@@ -2,8 +2,9 @@
 
 Both twins of a pair draw from the same instance RNG stream, so they share the
 question id and canonical answer; ctx.variant ("pc1" or "pc2", "base" aliasing
-"pc1") selects which surface paraphrase is shown. The level knob is reserved
-and currently unused.
+"pc1") selects which surface paraphrase is shown. Levels -1..1 draw one-hop
+DECISION_POOL questions; level 2 (hops=2) draws a TWO_HOP_POOL chain whose
+premises are carried inside both surfaces.
 """
 
 from collections.abc import Mapping
@@ -16,10 +17,10 @@ VARIANTS = ("base", "pc1", "pc2")
 _SURFACE_INDEX = {"base": 0, "pc1": 0, "pc2": 1}
 
 LADDER = {
-    -1: {},
-    0: {},
-    1: {},
-    2: {},
+    -1: {"hops": 1},
+    0: {"hops": 1},
+    1: {"hops": 1},
+    2: {"hops": 2},
 }
 OVERRIDES: dict[str, tuple[int, int]] = {}
 
@@ -100,11 +101,85 @@ DECISION_POOL: tuple[tuple[str, str, str, tuple[str, str]], ...] = (
     ),
 )
 
+# Two-hop pool: (question_id, canonical_answer, premises, base_question,
+# variant_surfaces). The answer chains the first two premises; the third is a
+# true distractor that the answer never uses.
+TWO_HOP_POOL: tuple[tuple[str, str, tuple[str, str, str], str, tuple[str, str]], ...] = (
+    (
+        "chain_height_1",
+        "yes",
+        (
+            "Alice is taller than Bob.",
+            "Bob is taller than Carol.",
+            "Diana is shorter than Carol.",
+        ),
+        "Is Alice taller than Carol?",
+        (
+            "Given these facts about height: (1) Alice is taller than Bob, (2) Bob is taller "
+            "than Carol, (3) Diana is shorter than Carol. Determine: Is Alice taller than Carol?",
+            "Consider three height comparisons: Alice exceeds Bob in height, Bob exceeds Carol "
+            "in height, and Diana is shorter than Carol. Does Alice exceed Carol in height?",
+        ),
+    ),
+    (
+        "chain_height_2",
+        "no",
+        (
+            "Eve is shorter than Frank.",
+            "Frank is shorter than Grace.",
+            "Henry is taller than Grace.",
+        ),
+        "Is Eve taller than Grace?",
+        (
+            "Height facts: Eve is shorter than Frank, Frank is shorter than Grace, Henry is "
+            "taller than Grace. Is Eve taller than Grace?",
+            "Given that Eve < Frank in height and Frank < Grace in height (with Henry taller "
+            "than Grace), is Eve taller than Grace?",
+        ),
+    ),
+    (
+        "chain_age_1",
+        "yes",
+        (
+            "The red book was published before the blue book.",
+            "The blue book was published before the green book.",
+            "The yellow book was published after the green book.",
+        ),
+        "Was the red book published before the green book?",
+        (
+            "Publication order: red before blue, blue before green, yellow after green. Did the "
+            "red book come out before the green book?",
+            "Consider: red book -> blue book -> green book -> yellow book in "
+            "publication order (arrows mean 'before'). Was red published before green?",
+        ),
+    ),
+    (
+        "chain_age_2",
+        "no",
+        (
+            "Project Alpha started after Project Beta.",
+            "Project Beta started after Project Gamma.",
+            "Project Delta started before Project Gamma.",
+        ),
+        "Did Project Alpha start before Project Gamma?",
+        (
+            "Timeline: Alpha after Beta, Beta after Gamma, Delta before Gamma. Did Alpha start "
+            "before Gamma?",
+            "Project order facts: Gamma -> Beta -> Alpha (arrows mean 'started before'), "
+            "with Delta before Gamma. Did Alpha begin before Gamma?",
+        ),
+    ),
+)
+
 
 def gen_prose_consistency(rng: Rng, knobs: Mapping, ctx: GenContext) -> tuple[str, dict, dict]:
     check_variant(ctx, VARIANTS)
-    resolve_knobs(knobs, LADDER, OVERRIDES)
-    question_id, canonical, base_question, surfaces = rng.choice(DECISION_POOL)
+    hops = resolve_knobs(knobs, LADDER, OVERRIDES)["hops"]
+    premises: tuple[str, ...] = ()
+    if hops == 2:
+        question_id, canonical, premises, base_question, surfaces = rng.choice(TWO_HOP_POOL)
+    else:
+        question_id, canonical, base_question, surfaces = rng.choice(DECISION_POOL)
     surface = surfaces[_SURFACE_INDEX[ctx.variant]]
     paragraphs = [
         surface,
@@ -120,6 +195,9 @@ def gen_prose_consistency(rng: Rng, knobs: Mapping, ctx: GenContext) -> tuple[st
         "base_question": base_question,
         "surface": surface,
     }
+    if hops == 2:
+        meta["hops"] = 2
+        meta["premises"] = list(premises)
     if clause is not None:
         meta["animal_clause"] = clause
     return prompt, key, meta

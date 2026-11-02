@@ -6,7 +6,7 @@ from pathlib import Path
 from psicotest.checkers.registry import check_turn
 from psicotest.checkers.rules import check_rules
 from psicotest.checkers.telemetry import measure
-from psicotest.generators import SLOTS_V5
+from psicotest.generators import SLOTS_V6
 from psicotest.rng import derive_seed
 from psicotest.runner import battery, checkpoint
 from psicotest.runner.client import (
@@ -22,7 +22,7 @@ from psicotest.runner.transport import (
     TransportError,
 )
 
-BATTERY_VERSION = "v5"
+BATTERY_VERSION = "v6"
 
 EXIT_OK = 0
 EXIT_INTERNAL = 1
@@ -122,7 +122,7 @@ def run_battery(
     out_path.mkdir(parents=True, exist_ok=True)
     checkpoint_path = out_path / _checkpoint_path(seed, order)
     report_path = out_path / _report_path(seed, order)
-    manifest = checkpoint.canonical_hash(list(SLOTS_V5))
+    manifest = checkpoint.canonical_hash(list(SLOTS_V6))
     params = {
         "max_tokens": max_tokens,
         "temperature": DEFAULT_TEMPERATURE,

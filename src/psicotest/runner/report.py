@@ -3,16 +3,16 @@ import os
 from pathlib import Path
 
 from psicotest.checkers.common import CAPABILITY_FAMILIES
-from psicotest.generators import SLOTS_V5
+from psicotest.generators import SLOTS_V6
 from psicotest.runner import checkpoint
 
 REPORT_SCHEMA_VERSION = 1
-CAPABILITY_SLOTS = frozenset(spec.slot for spec in SLOTS_V5 if spec.capability)
+CAPABILITY_SLOTS = frozenset(spec.slot for spec in SLOTS_V6 if spec.capability)
 CAPABILITY_MAX = len(CAPABILITY_SLOTS)
 
 
 def aggregate_checkpoint(header: dict, turns: list[dict]) -> dict:
-    slot_family = {spec.slot: spec.family for spec in SLOTS_V5}
+    slot_family = {spec.slot: spec.family for spec in SLOTS_V6}
     capability_slots = CAPABILITY_SLOTS
     by_family = {family: {"score": 0, "max": 0} for family in CAPABILITY_FAMILIES}
     cap_score = 0
@@ -101,7 +101,7 @@ def aggregate_checkpoint(header: dict, turns: list[dict]) -> dict:
     wall_mean = wall_total / (len(wall) or 1)
     return {
         "schema": REPORT_SCHEMA_VERSION,
-        "battery_version": "v5",
+        "battery_version": "v6",
         "manifest_sha256": header["manifest_sha256"],
         "base_url": header["base_url"],
         "model": header["model"],

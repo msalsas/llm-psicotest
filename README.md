@@ -98,9 +98,9 @@ Twins (CSP, ST, LOG, AR, PC) share an instance with an earlier slot but use a di
 
 Item outcomes beyond `OK`/`WRONG` (`NOANS`, `AMBIG`, `TRUNC`, `PREMISE_ABSORBED`, `FLIPPED`, `WRONG_OTHER`, …) and flags (`FMT`, `REASONING_ONLY`, …) are recorded per turn in the JSONL.
 
-### Pass criterion
+### Comparing models
 
-A model passes a battery when its capability score is at least **85% of the battery maximum**. For v6 that is **25/29**.
+The battery is a comparator, not a quality gate: it does not define a pass or fail threshold. A valid comparison runs different models or servers on the same frozen battery version with the same seeds and item order, then compares the capability score and the per-family breakdown. Scores from different battery versions are not comparable, because each version changes the difficulty of its items.
 
 ## Calibration
 

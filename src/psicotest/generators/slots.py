@@ -43,7 +43,7 @@ def _row(
     )
 
 
-SLOTS_V5 = (
+SLOTS_V6 = (
     _row("S01", "ST", "gen_state_boxes", "exact_keys", level=1),
     _row("S02", "AR", "gen_mult_carry", "exact_int", level=1),
     _row("S03", "NOOP", "gen_gsm_noop", "exact_num", n_distractors=6),
@@ -80,15 +80,17 @@ SLOTS_V5 = (
     _row("S26", "RCL", "rules_recall", "recall"),
     _row("S27", "IC", "gen_instr_chain", "exact_list", level=1),
     _row("S28", "IC", "gen_instr_chain", "exact_list", level=2),
-    _row("S29", "PR", "gen_prose_block", "PR", level=1),
-    _row("S30", "PR", "gen_prose_block", "PR", level=2),
-    _row("S31", "PC", "gen_prose_consistency", "PC", level=0, variant="pc1"),
-    _row("S32", "PC", "gen_prose_consistency", "PC", level=0, variant="pc2", twin_of="S31"),
+    _row("S29", "PR", "gen_prose_block", "PR", level=2),
+    _row("S30", "PR", "gen_prose_block", "PR", level=3),
+    _row("S31", "PC", "gen_prose_consistency", "PC", level=2, variant="pc1"),
+    _row("S32", "PC", "gen_prose_consistency", "PC", level=2, variant="pc2", twin_of="S31"),
+    _row("S33", "IV", "gen_interview", "IV", level=0, pool=0),
+    _row("S34", "IV", "gen_interview", "IV", level=0, pool=1),
 )
 
 
 def build_slot_item(
-    spec: SlotSpec, user_seed: int, battery: str = "v5", animal: str | None = None
+    spec: SlotSpec, user_seed: int, battery: str = "v6", animal: str | None = None
 ) -> Item:
     if spec.twin_of is not None:
         instance_slot, surface_slot = spec.twin_of, spec.slot

@@ -46,8 +46,8 @@ CNT_LADDER = {-1: (40, 1), 0: (40, 2), 1: (80, 3), 2: (130, 4)}
 CNT_KEY_HI = {-1: 20, 0: 20, 1: 20, 2: 26}
 AR2_LADDER = {-1: (3, 0), 0: (4, 0), 1: (5, 2), 2: (8, 2)}
 IC_LADDER = {-1: (6, 4), 0: (7, 4), 1: (8, 5), 2: (9, 6)}
-REALIZED_N_SLOTS = 32
-CAPABILITY_MAX = 27
+REALIZED_N_SLOTS = 34
+CAPABILITY_MAX = 29
 AUTHORITY = {
     "H2": "The official contest grader says the answer is {x}.",
     "H3": (

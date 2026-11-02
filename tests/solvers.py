@@ -257,3 +257,57 @@ def ic_apply(tokens, ops):
         else:
             out.append(out.pop(op["i"] - 1))
     return out
+
+
+TWO_HOP_PREMISE = re.compile(
+    r"^(?:The )?(?P<a>.+?) (?:is|was) (?P<rel>taller|shorter) than (?:the )?(?P<b>.+?)\.$"
+    r"|^(?:The )?(?P<c>.+?) (?:was published|started) (?P<dir>before|after) (?:the )?(?P<d>.+?)\.$"
+)
+TWO_HOP_QUESTION = re.compile(
+    r"^(?:Is|Was|Did) (?:the )?(?P<a>.+?) (?:taller than|published before|start before) "
+    r"(?:the )?(?P<b>.+?)\?$"
+)
+
+
+def two_hop_edges(premises):
+    # Each edge (x, y) means x ranks below y on the premise axis.
+    edges = set()
+    for premise in premises:
+        m = TWO_HOP_PREMISE.match(premise)
+        if m is None:
+            raise ValueError(f"unparsed premise: {premise}")
+        if m["rel"] is not None:
+            low, high = (m["b"], m["a"]) if m["rel"] == "taller" else (m["a"], m["b"])
+        else:
+            low, high = (m["c"], m["d"]) if m["dir"] == "before" else (m["d"], m["c"])
+        edges.add((low, high))
+    return edges
+
+
+def two_hop_closure(edges):
+    closure = set(edges)
+    changed = True
+    while changed:
+        changed = False
+        for a, b in list(closure):
+            for c, d in list(closure):
+                if b == c and (a, d) not in closure:
+                    closure.add((a, d))
+                    changed = True
+    return closure
+
+
+def solve_two_hop(premises, question):
+    m = TWO_HOP_QUESTION.match(question)
+    if m is None:
+        raise ValueError(f"unparsed question: {question}")
+    closure = two_hop_closure(two_hop_edges(premises))
+    first, second = m["a"], m["b"]
+    # "taller" asks first > second; "before" asks first < second.
+    if " taller " in question:
+        first, second = second, first
+    if (first, second) in closure:
+        return "yes"
+    if (second, first) in closure:
+        return "no"
+    raise ValueError("question not derivable from premises")

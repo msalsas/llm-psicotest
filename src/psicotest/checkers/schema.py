@@ -275,11 +275,31 @@ def validate(item: Item | None, family: str) -> None:
             raise ItemSchemaError("bad start word")
         if not isinstance(_req(constraints, "topic_lead"), bool):
             raise ItemSchemaError("bad topic lead")
+        count_max = constraints.get("sentence_count_max")
+        if count_max is not None and (not _is_int(count_max) or count_max < sentence_count):
+            raise ItemSchemaError("bad sentence count max")
+        for name in ("required_phrases", "start_words"):
+            extra = constraints.get(name)
+            if extra is not None and (
+                not isinstance(extra, (list, tuple))
+                or not extra
+                or any(not isinstance(x, str) or not x for x in extra)
+            ):
+                raise ItemSchemaError(f"bad {name}")
+        if not isinstance(constraints.get("distinct_starts", False), bool):
+            raise ItemSchemaError("bad distinct starts")
         if not _is_int(_req(meta, "level")):
             raise ItemSchemaError("bad level")
         proof = _req(meta, "proof")
         if not isinstance(proof, str) or not proof:
             raise ItemSchemaError("bad proof")
+    elif fam == "IV":
+        word_floor = _req(key, "word_floor")
+        if not _is_int(word_floor) or word_floor < 1:
+            raise ItemSchemaError("bad word floor")
+        prompt_id = _req(meta, "prompt_id")
+        if not isinstance(prompt_id, str) or not prompt_id:
+            raise ItemSchemaError("bad prompt id")
     elif fam == "PC":
         if _req(key, "value") not in ("yes", "no"):
             raise ItemSchemaError("bad value")

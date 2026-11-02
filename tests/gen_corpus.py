@@ -28,6 +28,7 @@ CAP_GENS = (
     "gen_instr_chain",
     "gen_prose_block",
     "gen_prose_consistency",
+    "gen_interview",
 )
 
 

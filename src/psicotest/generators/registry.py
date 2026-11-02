@@ -8,6 +8,7 @@ from psicotest.generators.derivable_datum import gen_derivable_datum
 from psicotest.generators.false_premise import gen_false_premise
 from psicotest.generators.gsm_noop import gen_gsm_noop
 from psicotest.generators.instr_chain import gen_instr_chain
+from psicotest.generators.interview import gen_interview
 from psicotest.generators.knights_spy import gen_knights_spy
 from psicotest.generators.missing_datum import gen_missing_datum
 from psicotest.generators.mult_carry import gen_mult_carry
@@ -34,6 +35,7 @@ GENERATORS: dict[str, tuple[Callable, int]] = {
     "gen_derivable_datum": (gen_derivable_datum, 1),
     "gen_prose_block": (gen_prose_block, 1),
     "gen_prose_consistency": (gen_prose_consistency, 1),
+    "gen_interview": (gen_interview, 1),
     "setup_rules": (setup_rules, 1),
     "rules_recall": (rules_recall, 1),
 }
@@ -52,8 +54,9 @@ _FAMILIES = {
     "gen_instr_chain": ("IC", ("base",), (-1, 0, 1, 2)),
     "gen_missing_datum": ("AMB", ("base", "relabel"), (0,)),
     "gen_derivable_datum": ("AMBC", ("base", "relabel"), (0,)),
-    "gen_prose_block": ("PR", ("base",), (-1, 0, 1, 2)),
-    "gen_prose_consistency": ("PC", ("base", "pc1", "pc2"), (0,)),
+    "gen_prose_block": ("PR", ("base",), (-1, 0, 1, 2, 3)),
+    "gen_prose_consistency": ("PC", ("base", "pc1", "pc2"), (-1, 0, 1, 2)),
+    "gen_interview": ("IV", ("base",), (0,)),
     "setup_rules": ("SETUP", ("base",), (0,)),
     "rules_recall": ("RCL", ("base",), (0,)),
 }
@@ -67,7 +70,7 @@ START_KNOBS: dict[str, dict] = {name: {"level": 0} for name in GENERATORS}
 GOLDEN_SEEDS = (1, 2, 3, 42, 1000)
 GOLDEN_ANIMAL = "sheep"
 RULE_GENERATORS = ("setup_rules", "rules_recall")
-BATTERY = "v5"
+BATTERY = "v6"
 
 
 def golden_items() -> dict[str, Item]:

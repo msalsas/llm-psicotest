@@ -2,6 +2,7 @@ from collections.abc import Callable
 
 from psicotest.checkers.common import CAPABILITY_FAMILIES
 from psicotest.checkers.err import check_err
+from psicotest.checkers.interview import check_iv
 from psicotest.checkers.keyed import check_csp, check_ic, check_st
 from psicotest.checkers.logic import check_log
 from psicotest.checkers.numeric import (
@@ -33,6 +34,7 @@ CHECKERS: dict[str, Callable] = {
     "IC": check_ic,
     "PR": check_pr,
     "PC": check_pc,
+    "IV": check_iv,
     "AMB": check_amb,
     "AMBR": check_ambr,
     "AMBC": check_ambc,

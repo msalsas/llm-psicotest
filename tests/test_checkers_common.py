@@ -41,6 +41,7 @@ class TestCheckersCommon(unittest.TestCase):
                 "ERR",
                 "FPRE",
                 "IC",
+                "IV",
                 "LOG",
                 "NOOP",
                 "PC",

@@ -74,7 +74,7 @@ class TestDriver(unittest.TestCase):
                 scoring = record["scoring"]
                 self.assertEqual(sorted(scoring), ["detail", "flags", "outcome", "score", "value"])
                 self.assertEqual(sorted(record["rules"]), ["R1", "R2", "R3", "R3_NOTE"])
-                self.assertEqual(record["telemetry"]["schema"], 1)
+                self.assertEqual(record["telemetry"]["schema"], 2)
                 self.assertIsInstance(record["attempts"], int)
             outcomes = {record["turn"]: record["scoring"]["outcome"] for record in turn_records}
             for turn in range(2, 37):

@@ -28,9 +28,11 @@ TOP_KEYS = [
     "protocol",
     "rules",
     "trunc_count",
+    "budget",
     "tokens",
     "timing",
     "telemetry",
+    "server",
     "errors",
 ]
 
@@ -73,7 +75,7 @@ class TestReport(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             oracle_run(tmp)
             _path, report = load_report(tmp)
-            self.assertEqual(report["schema"], 1)
+            self.assertEqual(report["schema"], 2)
             self.assertEqual(report["battery_version"], "v6")
             self.assertEqual(report["seed"], 7)
             self.assertEqual(report["order"], "A")

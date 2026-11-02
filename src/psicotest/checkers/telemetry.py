@@ -1,6 +1,7 @@
 import re
 import unicodedata
 
+from psicotest.checkers.budget import has_budget_marker
 from psicotest.checkers.cjk import LEAK_CLASSES, count_cjk
 
 LOOP_WIDTH = 64
@@ -54,7 +55,7 @@ def _leak_counts(text: str | None) -> dict[str, int]:
 
 def measure(content: str | None, reasoning: str | None) -> dict:
     return {
-        "schema": 1,
+        "schema": 2,
         "chars": {"content": len(content or ""), "reasoning": len(reasoning or "")},
         "leak": {"content": _leak_counts(content), "reasoning": _leak_counts(reasoning)},
         "cjk_punct": {
@@ -66,4 +67,10 @@ def measure(content: str | None, reasoning: str | None) -> dict:
             "reasoning": selfcorr_counts(reasoning),
         },
         "loop": {"content": has_loop(content), "reasoning": has_loop(reasoning)},
+        "budget": {
+            "marker": {
+                "content": has_budget_marker(content),
+                "reasoning": has_budget_marker(reasoning),
+            }
+        },
     }

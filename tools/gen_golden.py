@@ -8,8 +8,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PATH = ROOT / "tests" / "golden" / "rng.json"
-DEFAULT_ITEMS_PATH = ROOT / "tests" / "golden" / "items_v4.json"
-BATTERY = "v4"
+DEFAULT_ITEMS_PATH = ROOT / "tests" / "golden" / "items_v5.json"
+BATTERY = "v5"
 
 
 def _module(name):
@@ -110,8 +110,8 @@ def render(data: dict) -> bytes:
 
 
 def main(argv: list[str] | None = None) -> int:
-    if BATTERY != "v4":
-        raise RuntimeError("gen_golden expects battery v4")
+    if BATTERY != "v5":
+        raise RuntimeError("gen_golden expects battery v5")
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--write", action="store_true")

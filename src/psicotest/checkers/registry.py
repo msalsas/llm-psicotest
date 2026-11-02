@@ -14,6 +14,8 @@ from psicotest.checkers.numeric import (
     check_setup,
     check_syp,
 )
+from psicotest.checkers.prose_block import check_pr
+from psicotest.checkers.prose_consistency import check_pc
 from psicotest.checkers.protocol import check_amb, check_ambc, check_rcl
 from psicotest.spec import Turn
 
@@ -29,6 +31,8 @@ CHECKERS: dict[str, Callable] = {
     "FPRE": check_fpre,
     "SYP": check_syp,
     "IC": check_ic,
+    "PR": check_pr,
+    "PC": check_pc,
     "AMB": check_amb,
     "AMBR": check_ambr,
     "AMBC": check_ambc,
@@ -59,5 +63,8 @@ def dispatch_key(turn: Turn) -> str:
     raise ValueError("unknown kind")
 
 
-def check_turn(turn: Turn, content, finish_reason, reasoning):
-    return CHECKERS[dispatch_key(turn)](content, finish_reason, reasoning, turn.item)
+def check_turn(turn: Turn, content, finish_reason, reasoning, prior=None):
+    key = dispatch_key(turn)
+    if key == "PC":
+        return CHECKERS[key](content, finish_reason, reasoning, turn.item, prior=prior)
+    return CHECKERS[key](content, finish_reason, reasoning, turn.item)

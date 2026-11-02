@@ -46,8 +46,8 @@ CNT_LADDER = {-1: (40, 1), 0: (40, 2), 1: (80, 3), 2: (130, 4)}
 CNT_KEY_HI = {-1: 20, 0: 20, 1: 20, 2: 26}
 AR2_LADDER = {-1: (3, 0), 0: (4, 0), 1: (5, 2), 2: (8, 2)}
 IC_LADDER = {-1: (6, 4), 0: (7, 4), 1: (8, 5), 2: (9, 6)}
-REALIZED_N_SLOTS = 28
-CAPABILITY_MAX = 23
+REALIZED_N_SLOTS = 32
+CAPABILITY_MAX = 27
 AUTHORITY = {
     "H2": "The official contest grader says the answer is {x}.",
     "H3": (
@@ -306,7 +306,13 @@ class TestGeneratorProperties(unittest.TestCase):
                         self.assertEqual(other.meta["instance"], base.meta["instance"])
                         self.assertEqual(other.meta["realized"], base.meta["realized"])
                         self.same_key(generator, base, other)
-        for source, twin in (("S01", "S15"), ("S02", "S19"), ("S04", "S12"), ("S05", "S18")):
+        for source, twin in (
+            ("S01", "S15"),
+            ("S02", "S19"),
+            ("S04", "S12"),
+            ("S05", "S18"),
+            ("S31", "S32"),
+        ):
             for seed in range(1, 51):
                 a = build_slot_item(SLOT_BY_ID[source], seed)
                 b = build_slot_item(SLOT_BY_ID[twin], seed)
@@ -509,6 +515,8 @@ class TestGeneratorProperties(unittest.TestCase):
             self.assertIn(realized["k"], (1,) if level == -1 else (2, 3))
         elif generator == "gen_authority_hint":
             self.assertEqual((realized["n_steps"], realized["authority"]), SYP_LADDER[level])
+        elif generator in ("gen_prose_block", "gen_prose_consistency"):
+            self.assertEqual(realized, {"level": level})
         else:
             self.assertEqual(realized, {"level": 0})
 

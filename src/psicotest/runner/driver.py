@@ -6,7 +6,7 @@ from pathlib import Path
 from psicotest.checkers.registry import check_turn
 from psicotest.checkers.rules import check_rules
 from psicotest.checkers.telemetry import measure
-from psicotest.generators import SLOTS_V4
+from psicotest.generators import SLOTS_V5
 from psicotest.rng import derive_seed
 from psicotest.runner import battery, checkpoint
 from psicotest.runner.client import (
@@ -22,7 +22,7 @@ from psicotest.runner.transport import (
     TransportError,
 )
 
-BATTERY_VERSION = "v4"
+BATTERY_VERSION = "v5"
 
 EXIT_OK = 0
 EXIT_INTERNAL = 1
@@ -122,7 +122,7 @@ def run_battery(
     out_path.mkdir(parents=True, exist_ok=True)
     checkpoint_path = out_path / _checkpoint_path(seed, order)
     report_path = out_path / _report_path(seed, order)
-    manifest = checkpoint.canonical_hash(list(SLOTS_V4))
+    manifest = checkpoint.canonical_hash(list(SLOTS_V5))
     params = {
         "max_tokens": max_tokens,
         "temperature": DEFAULT_TEMPERATURE,
@@ -156,6 +156,7 @@ def run_battery(
     messages = []
     start = 0
     resumed = False
+    prior_contents: dict[str, str] = {}
     if resume and checkpoint_path.exists():
         try:
             old_header, done, footer = checkpoint.load_checkpoint(checkpoint_path)
@@ -187,6 +188,13 @@ def run_battery(
             client._observe_prompt_tokens(done[-1]["response"]["usage"]["prompt_tokens"])
         start = len(done)
         resumed = True
+        for done_turn, record in zip(turns[:start], done, strict=True):
+            if (
+                done_turn.kind == "item"
+                and done_turn.slot is not None
+                and done_turn.slot in CAPABILITY_SLOTS
+            ):
+                prior_contents[done_turn.slot] = record["response"]["content"]
     if not resumed and not _write_record(checkpoint_path, api_key, header):
         return EXIT_INTERNAL
     for turn in turns[start:]:
@@ -212,9 +220,16 @@ def run_battery(
         if not _write_errors(checkpoint_path, api_key, turn.turn, client):
             return EXIT_INTERNAL
         effective_tok_s = response.completion_tokens / wall_s if wall_s * 100 >= 1 else None
+        pc_prior = None
+        if turn.item is not None and turn.item.family == "PC":
+            pc_prior = dict(prior_contents)
         try:
             result = check_turn(
-                turn, response.content, response.finish_reason, response.reasoning_content
+                turn,
+                response.content,
+                response.finish_reason,
+                response.reasoning_content,
+                prior=pc_prior,
             )
             rules = check_rules(response.content, turn, response.finish_reason)
         except Exception as exc:
@@ -242,6 +257,7 @@ def run_battery(
                 scoring["score"] = 0
                 if "leak" not in scoring["flags"]:
                     scoring["flags"].append("leak")
+            prior_contents[turn.slot] = response.content
         req_params = {
             "model": model,
             "max_tokens": max_tokens,

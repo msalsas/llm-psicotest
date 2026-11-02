@@ -8,7 +8,7 @@ import _bootstrap
 import fakes
 from fake_transport import FakeServerTransport
 
-from psicotest.generators import SLOTS_V4
+from psicotest.generators import SLOTS_V5
 from psicotest.runner import driver
 from psicotest.runner.battery import battery_layout
 from psicotest.runner.driver import run_battery
@@ -44,21 +44,21 @@ class TestIntegration(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             code = run("oracle", tmp)
             self.assertEqual(code, driver.EXIT_OK)
-            checkpoint_path = Path(tmp) / "v4_7_A.jsonl"
+            checkpoint_path = Path(tmp) / "v5_7_A.jsonl"
             records = records_of(checkpoint_path)
             types = [r["type"] for r in records]
             self.assertEqual(types[0], "header")
             self.assertEqual(types[-1], "footer")
-            self.assertEqual(types.count("turn"), 32)
-            report = json.loads((Path(tmp) / "v4_7_A.report.json").read_text("utf-8"))
-            self.assertEqual(report["capability"]["score"], 23)
+            self.assertEqual(types.count("turn"), 36)
+            report = json.loads((Path(tmp) / "v5_7_A.report.json").read_text("utf-8"))
+            self.assertEqual(report["capability"]["score"], 27)
             self.assertEqual(report["protocol"]["clar_ok"], 3)
 
     def test_full_run_crasher_resume(self):
         with tempfile.TemporaryDirectory() as tmp:
             code = run("crasher", tmp)
             self.assertEqual(code, driver.EXIT_TRANSPORT)
-            checkpoint_path = Path(tmp) / "v4_7_A.jsonl"
+            checkpoint_path = Path(tmp) / "v5_7_A.jsonl"
             records = records_of(checkpoint_path)
             turn_records = [r for r in records if r["type"] == "turn"]
             self.assertEqual(len(turn_records), 11)
@@ -73,14 +73,14 @@ class TestIntegration(unittest.TestCase):
             self.assertEqual(code, driver.EXIT_OK)
             records = records_of(checkpoint_path)
             types = [r["type"] for r in records]
-            self.assertEqual(types.count("turn"), 32)
+            self.assertEqual(types.count("turn"), 36)
             self.assertEqual(types[-1], "footer")
-            report = json.loads((Path(tmp) / "v4_7_A.report.json").read_text("utf-8"))
-            self.assertEqual(report["capability"]["score"], 23)
+            report = json.loads((Path(tmp) / "v5_7_A.report.json").read_text("utf-8"))
+            self.assertEqual(report["capability"]["score"], 27)
             self.assertEqual(report["protocol"]["clar_ok"], 3)
             with tempfile.TemporaryDirectory() as reference:
                 run("oracle", reference)
-                reference_records = records_of(Path(reference) / "v4_7_A.jsonl")
+                reference_records = records_of(Path(reference) / "v5_7_A.jsonl")
             resumed_hashes = [
                 r["request"]["messages_sha256"] for r in records if r["type"] == "turn"
             ]
@@ -93,7 +93,7 @@ class TestIntegration(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             code = run("auth_reject", tmp)
             self.assertEqual(code, driver.EXIT_AUTH)
-            records = records_of(Path(tmp) / "v4_7_A.jsonl")
+            records = records_of(Path(tmp) / "v5_7_A.jsonl")
             self.assertEqual(len(records), 1)
             self.assertEqual(records[0]["type"], "header")
 
@@ -101,7 +101,7 @@ class TestIntegration(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             code = run("ctx_shrink", tmp)
             self.assertEqual(code, driver.EXIT_PROTOCOL)
-            records = records_of(Path(tmp) / "v4_7_A.jsonl")
+            records = records_of(Path(tmp) / "v5_7_A.jsonl")
             turn_records = [r for r in records if r["type"] == "turn"]
             self.assertEqual(len(turn_records), 5)
             self.assertNotIn("footer", [r["type"] for r in records])
@@ -110,20 +110,20 @@ class TestIntegration(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             code = run("oracle", tmp)
             self.assertEqual(code, driver.EXIT_OK)
-            checkpoint_path = Path(tmp) / "v4_7_A.jsonl"
-            report_path = Path(tmp) / "v4_7_A.report.json"
+            checkpoint_path = Path(tmp) / "v5_7_A.jsonl"
+            report_path = Path(tmp) / "v5_7_A.report.json"
             records = records_of(checkpoint_path)
             turn_records = [r for r in records if r["type"] == "turn"]
             report_text = report_path.read_text("utf-8")
             report = json.loads(report_text)
-            capability_slots = {s.slot for s in SLOTS_V4 if s.capability}
+            capability_slots = {s.slot for s in SLOTS_V5 if s.capability}
             capability_sum = sum(
                 r["scoring"]["score"]
                 for r in turn_records
                 if r["kind"] == "item" and r["slot"] is not None and r["slot"] in capability_slots
             )
             self.assertEqual(report["capability"]["score"], capability_sum)
-            self.assertEqual(capability_sum, 23)
+            self.assertEqual(capability_sum, 27)
             clar_ok = sum(1 for r in turn_records if r["scoring"]["outcome"] == "CLAR_OK")
             self.assertEqual(report["protocol"]["clar_ok"], clar_ok)
             self.assertEqual(clar_ok, 3)
@@ -138,7 +138,7 @@ class TestIntegration(unittest.TestCase):
             with tempfile.TemporaryDirectory() as second:
                 code = run("oracle", second)
                 self.assertEqual(code, driver.EXIT_OK)
-                second_text = (Path(second) / "v4_7_A.report.json").read_text("utf-8")
+                second_text = (Path(second) / "v5_7_A.report.json").read_text("utf-8")
             first_report = json.loads(report_text)
             second_report = json.loads(second_text)
             for volatile in ("started_at", "completed_at", "timing"):

@@ -245,6 +245,50 @@ def validate(item: Item | None, family: str) -> None:
     elif fam == "AMBC":
         if not _is_num(_req(key, "value")):
             raise ItemSchemaError("bad value")
+    elif fam == "PR":
+        constraints = _req(key, "constraints")
+        if not isinstance(constraints, Mapping):
+            raise ItemSchemaError("bad constraints")
+        topic = _req(constraints, "topic")
+        if not isinstance(topic, str) or not topic:
+            raise ItemSchemaError("bad topic")
+        word_min = _req(constraints, "word_count_min")
+        word_max = _req(constraints, "word_count_max")
+        if not _is_int(word_min) or not _is_int(word_max) or word_min < 1 or word_max < word_min:
+            raise ItemSchemaError("bad word count")
+        sentence_count = _req(constraints, "sentence_count")
+        if not _is_int(sentence_count) or sentence_count < 1:
+            raise ItemSchemaError("bad sentence count")
+        banned = _req(constraints, "banned_letter")
+        if (
+            not isinstance(banned, str)
+            or len(banned) != 1
+            or not banned.isascii()
+            or not banned.islower()
+        ):
+            raise ItemSchemaError("bad banned letter")
+        phrase = _req(constraints, "required_phrase")
+        if not isinstance(phrase, str) or not phrase:
+            raise ItemSchemaError("bad phrase")
+        start_word = constraints.get("same_start_word")
+        if start_word is not None and (not isinstance(start_word, str) or not start_word):
+            raise ItemSchemaError("bad start word")
+        if not isinstance(_req(constraints, "topic_lead"), bool):
+            raise ItemSchemaError("bad topic lead")
+        if not _is_int(_req(meta, "level")):
+            raise ItemSchemaError("bad level")
+        proof = _req(meta, "proof")
+        if not isinstance(proof, str) or not proof:
+            raise ItemSchemaError("bad proof")
+    elif fam == "PC":
+        if _req(key, "value") not in ("yes", "no"):
+            raise ItemSchemaError("bad value")
+        question_id = _req(meta, "question_id")
+        if not isinstance(question_id, str) or not question_id:
+            raise ItemSchemaError("bad question id")
+        surface = _req(meta, "surface")
+        if not isinstance(surface, str) or not surface:
+            raise ItemSchemaError("bad surface")
     elif fam in ("RCL", "SETUP"):
         pass
     else:

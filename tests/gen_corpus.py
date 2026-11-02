@@ -26,6 +26,8 @@ CAP_GENS = (
     "gen_missing_datum",
     "gen_derivable_datum",
     "gen_instr_chain",
+    "gen_prose_block",
+    "gen_prose_consistency",
 )
 
 

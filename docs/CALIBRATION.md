@@ -59,12 +59,6 @@ The two seeds produce the same total and the same per-family results except for 
 
 Constrained prose (PR), cross-turn consistency twins (PC) and interview structural metrics (IV) scored 2/2 on both seeds. Zero CJK-range characters were observed in any of the six structured runs across v4, v5 and v6 (two seeds each).
 
-## Verdict
-
-Pass criterion: capability score at least 85% of the battery maximum (25/29 for v6).
-
-Qwen3-8B IQ3_S scores 22/29 = 75.9% on v6 with both seeds: **below the 85% bar, not a pass.**
-
 ## Known limitation
 
 The battery measures constrained prose, cross-turn consistency and structural prose metrics, but in these runs it has not reproduced the free-form defects this quant shows in casual long conversations: CJK glyph leakage into English text and degradation of sentence structure. Within the battery the model produced no CJK characters and passed every PR, PC and IV item. Whatever triggers those defects in long unstructured chats is not exercised by the current turn structure. A conversational free-form block aimed at them is future work and is not implemented.

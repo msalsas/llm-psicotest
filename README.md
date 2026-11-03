@@ -63,7 +63,7 @@ Exit codes: `0` ok, `1` internal, `2` usage, `3` auth (including missing key), `
 
 | Code | Name | Items | What is checked |
 |---|---|---|---|
-| ST | State tracking | 4 | Final contents of 7–9 boxes after 60–150 add/remove/transfer/swap operations |
+| ST | State tracking | 4 | Final contents of 7 boxes after 60 add/remove/transfer/swap operations |
 | AR | Long multiplication | 2 | Exact product of an 8-digit by 5-digit integer with dense carries |
 | AR2 | Decimal chain arithmetic | 1 | Multi-operation decimal chain, exact to 2 decimal places |
 | NOOP | Irrelevant-information arithmetic | 3 | Word problem with numeric distractors; one item is the distractor-free mirror of another |

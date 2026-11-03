@@ -13,6 +13,7 @@ from psicotest.runner.client import (
     DEFAULT_TEMPERATURE,
     DEFAULT_TOP_P,
     Client,
+    null_server_snapshot,
 )
 from psicotest.runner.report import CAPABILITY_SLOTS
 from psicotest.runner.transport import (
@@ -23,6 +24,7 @@ from psicotest.runner.transport import (
 )
 
 BATTERY_VERSION = "v6"
+HEADER_SCHEMA = 2
 
 EXIT_OK = 0
 EXIT_INTERNAL = 1
@@ -100,6 +102,13 @@ def _write_errors(path, api_key, turn_no, client) -> bool:
     return True
 
 
+def _server_snapshot(client: Client, api_key: str) -> dict:
+    snapshot = client.server_snapshot()
+    if api_key and len(api_key) >= 8 and api_key in json.dumps(snapshot, ensure_ascii=False):
+        return null_server_snapshot("redacted", snapshot.get("http_status"))
+    return snapshot
+
+
 def run_battery(
     *,
     transport: Transport,
@@ -138,7 +147,7 @@ def run_battery(
     )
     header = {
         "type": "header",
-        "schema": 1,
+        "schema": HEADER_SCHEMA,
         "battery_version": BATTERY_VERSION,
         "manifest_sha256": manifest,
         "psicotest_version": _version(),
@@ -195,8 +204,10 @@ def run_battery(
                 and done_turn.slot in CAPABILITY_SLOTS
             ):
                 prior_contents[done_turn.slot] = record["response"]["content"]
-    if not resumed and not _write_record(checkpoint_path, api_key, header):
-        return EXIT_INTERNAL
+    if not resumed:
+        header["server"] = _server_snapshot(client, api_key)
+        if not _write_record(checkpoint_path, api_key, header):
+            return EXIT_INTERNAL
     for turn in turns[start:]:
         started_at = _utc_now()
         t0 = time.monotonic()

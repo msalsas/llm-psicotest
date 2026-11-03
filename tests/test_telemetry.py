@@ -2,6 +2,7 @@ import unittest
 
 import _bootstrap
 
+from psicotest.checkers.budget import BUDGET_MARKER
 from psicotest.checkers.cjk import cjk_class, count_cjk
 from psicotest.checkers.telemetry import SELFCORR, has_loop, measure, selfcorr_counts
 from psicotest.spec import canonical_json
@@ -131,13 +132,28 @@ class TestTelemetry(unittest.TestCase):
 
     def test_measure_schema(self):
         m = measure(None, None)
-        self.assertEqual(sorted(m), ["chars", "cjk_punct", "leak", "loop", "schema", "selfcorr"])
+        self.assertEqual(
+            sorted(m), ["budget", "chars", "cjk_punct", "leak", "loop", "schema", "selfcorr"]
+        )
         self.assertEqual(m["chars"], {"content": 0, "reasoning": 0})
         self.assertEqual(m["cjk_punct"], {"content": 0, "reasoning": 0})
         self.assertEqual(m["loop"], {"content": False, "reasoning": False})
         self.assertEqual(m["leak"]["content"]["total"], 0)
         self.assertEqual(m["selfcorr"]["content"]["total"], 0)
         canonical_json(measure("a", "b"))
+
+    def test_measure_budget_marker(self):
+        m = measure("ANSWER: 1", "abc " + BUDGET_MARKER + ".")
+        self.assertEqual(m["schema"], 2)
+        self.assertEqual(m["budget"], {"marker": {"content": False, "reasoning": True}})
+        self.assertEqual(
+            measure(BUDGET_MARKER, None)["budget"]["marker"],
+            {"content": True, "reasoning": False},
+        )
+        self.assertEqual(
+            measure(None, None)["budget"]["marker"],
+            {"content": False, "reasoning": False},
+        )
 
 
 if __name__ == "__main__":

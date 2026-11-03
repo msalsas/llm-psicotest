@@ -16,6 +16,7 @@ DEFAULT_MAX_TOKENS = 6144
 DEFAULT_TIMEOUT = 240
 DEFAULT_TEMPERATURE = 6 / 10
 DEFAULT_TOP_P = 95 / 100
+SNAPSHOT_TIMEOUT = 30
 
 
 def _wait(delay):
@@ -63,6 +64,79 @@ class Response:
     raw: dict
 
 
+def null_server_snapshot(status: str, http_status: int | None = None) -> dict:
+    return {
+        "status": status,
+        "http_status": http_status,
+        "model_id": None,
+        "owned_by": None,
+        "label": None,
+        "instance_id": None,
+        "gpus": None,
+        "aliases": None,
+    }
+
+
+def _str_or_none(value) -> str | None:
+    return value if isinstance(value, str) else None
+
+
+def _str_list_or_none(value) -> list[str] | None:
+    if isinstance(value, list) and all(isinstance(item, str) for item in value):
+        return list(value)
+    return None
+
+
+def _int_list_or_none(value) -> list[int] | None:
+    if isinstance(value, list) and all(
+        isinstance(item, int) and not isinstance(item, bool) for item in value
+    ):
+        return list(value)
+    return None
+
+
+def _meta_of(entry: dict) -> dict:
+    meta = entry.get("meta")
+    return meta if isinstance(meta, dict) else {}
+
+
+def parse_models_payload(model: str, status: int, body: bytes) -> dict:
+    if status != 200:
+        return null_server_snapshot("http_error", status)
+    try:
+        data = json.loads(body)
+    except (UnicodeDecodeError, json.JSONDecodeError, TypeError):
+        return null_server_snapshot("bad_payload", status)
+    entries = data.get("data") if isinstance(data, dict) else None
+    if not isinstance(entries, list):
+        return null_server_snapshot("bad_payload", status)
+    candidates = [entry for entry in entries if isinstance(entry, dict)]
+    entry = next((item for item in candidates if item.get("id") == model), None)
+    if entry is None:
+        entry = next(
+            (
+                item
+                for item in candidates
+                if isinstance(_meta_of(item).get("aliases"), list)
+                and model in _meta_of(item)["aliases"]
+            ),
+            None,
+        )
+    if entry is None:
+        return null_server_snapshot("model_not_listed", status)
+    meta = _meta_of(entry)
+    return {
+        "status": "ok",
+        "http_status": status,
+        "model_id": _str_or_none(entry.get("id")),
+        "owned_by": _str_or_none(entry.get("owned_by")),
+        "label": _str_or_none(meta.get("label")),
+        "instance_id": _str_or_none(meta.get("instanceId")),
+        "gpus": _int_list_or_none(meta.get("gpus")),
+        "aliases": _str_list_or_none(meta.get("aliases")),
+    }
+
+
 class Client:
     def __init__(
         self,
@@ -95,6 +169,19 @@ class Client:
 
     def _observe_prompt_tokens(self, value: int) -> None:
         self._last_prompt_tokens = value
+
+    def server_snapshot(self) -> dict:
+        url = self._base_url + "/models"
+        try:
+            status, _headers, body = self._transport.request(
+                "GET", url, self._headers, None, min(self._timeout, SNAPSHOT_TIMEOUT)
+            )
+        except Exception:
+            return null_server_snapshot("transport_error")
+        try:
+            return parse_models_payload(self._model, status, body)
+        except Exception:
+            return null_server_snapshot("bad_payload", status if isinstance(status, int) else None)
 
     def chat(
         self,

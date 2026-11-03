@@ -2,13 +2,51 @@ import json
 import os
 from pathlib import Path
 
+from psicotest.checkers.budget import budget_flags, infer_budget_cap
 from psicotest.checkers.common import CAPABILITY_FAMILIES
 from psicotest.generators import SLOTS_V6
 from psicotest.runner import checkpoint
 
-REPORT_SCHEMA_VERSION = 1
+REPORT_SCHEMA_VERSION = 2
 CAPABILITY_SLOTS = frozenset(spec.slot for spec in SLOTS_V6 if spec.capability)
 CAPABILITY_MAX = len(CAPABILITY_SLOTS)
+
+
+def _turn_marker(record: dict) -> bool | None:
+    budget = record.get("telemetry", {}).get("budget")
+    if not isinstance(budget, dict) or not isinstance(budget.get("marker"), dict):
+        return None
+    marker = budget["marker"]
+    return bool(marker.get("content")) or bool(marker.get("reasoning"))
+
+
+def summarize_budget(turns: list[dict]) -> dict:
+    tokens = [record["response"]["usage"]["completion_tokens"] for record in turns]
+    flags = budget_flags(tokens)
+    hit_turns = [record["turn"] for record, flag in zip(turns, flags, strict=True) if flag]
+    markers = [_turn_marker(record) for record in turns]
+    if any(marker is None for marker in markers):
+        marker_hits = None
+        marker_crosscheck = None
+        marker_disagree_turns = None
+    else:
+        marker_hits = sum(1 for marker in markers if marker)
+        marker_crosscheck = sum(
+            1 for flag, marker in zip(flags, markers, strict=True) if flag == marker
+        )
+        marker_disagree_turns = [
+            record["turn"]
+            for record, flag, marker in zip(turns, flags, markers, strict=True)
+            if flag != marker
+        ]
+    return {
+        "cap": infer_budget_cap(tokens),
+        "budget_hits": len(hit_turns),
+        "hit_turns": hit_turns,
+        "marker_hits": marker_hits,
+        "marker_crosscheck": marker_crosscheck,
+        "marker_disagree_turns": marker_disagree_turns,
+    }
 
 
 def aggregate_checkpoint(header: dict, turns: list[dict]) -> dict:
@@ -120,6 +158,7 @@ def aggregate_checkpoint(header: dict, turns: list[dict]) -> dict:
         },
         "rules": {"R1": r1, "R2": r2, "R3": r3},
         "trunc_count": trunc_count,
+        "budget": summarize_budget(turns),
         "tokens": {
             "prompt_total": prompt_total,
             "completion_total": completion_total,
@@ -131,6 +170,7 @@ def aggregate_checkpoint(header: dict, turns: list[dict]) -> dict:
             "loop_count": loop_count,
             "selfcorr_total": selfcorr_total,
         },
+        "server": header.get("server"),
     }
 
 

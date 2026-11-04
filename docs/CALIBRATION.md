@@ -69,41 +69,71 @@ An A/B run of the Unsloth Q3_K_XL quant of the same base model on the final v6 b
 
 ## Re-leveling pilot: LOG to level 0 (November 2026)
 
-Measured live on 2026-11-03 and 2026-11-04. This is a tuning of v6, not a new battery generation. The manifest hash is the strict identity: pre-re-level v6 starts `a18556a3`, v6r starts `6a56ad80`. The pending Unsloth A/B line remains valid.
+Measured 2026-11-03 and 2026-11-04. This is v6 tuning, not a new battery
+generation. The manifest hash remains the strict identity: pre-re-level v6
+starts `a18556a3`, the ST re-level starts `6a56ad80`, and the battery shipped
+with this section starts `f794a595`. The pending Unsloth A/B line above
+stays open.
 
-Rules were written before running:
+The decision rules were written down before the extension runs, and the
+extension was made to meet them:
 
-- R1: a family is a discriminator if IQ3 > IQ2 in at least 2 of 4 seeds and no seed has IQ2 > IQ3 by more than 1.
-- R2: LOG level 0 enters the battery only if LOG passes R1 on the level-0 battery.
-- R3: defect-flag asymmetry counts as qualitative signal.
-- R4: no version bump and no composition commit without owner order.
+- R1. A family is a quant discriminator on a battery when IQ3 (8B, IQ-series)
+  scores above IQ2 in at least 2 of 4 seeds and no seed inverts by more than
+  one point.
+- R2. The LOG re-level enters the composition only if LOG passes R1 on the
+  level-0 battery.
+- R3. A consistent defect-flag asymmetry (no-answer or reasoning-loop flags
+  on IQ2 at the same slots where IQ3 shows none) counts as qualitative
+  support independently of scores.
+- R4. If R1 fails everywhere, the composition freezes at current levels and
+  the experiment is archived here.
 
-Setup: Qwen3-8B in two quantizations on the same endpoint, IQ3_S (`iq3_s`) and IQ2_XS (`iq2_xs`). Seeds 7, 11, 13, 17; order A; temperature 0.6, top_p 0.95, max_tokens 6144. Two batteries: `v6r` (ST at level 1, LOG S05/S16/S18 at levels 1/2/1) and `v6l0` (ST at level 1, LOG all at level 0). Sixteen full runs.
+Setup: same Strata host as every v6 line, quant swapped between runs (one
+server at a time). Battery variants: "v6r" (ST re-level only, the baseline
+for this branch) and "v6l0" (v6r plus LOG slots at level 0). Seeds 7, 11,
+13, 17; sixteen full runs. Family points below are the `by_family` values
+of each run's report, so they are exactly what the CLI prints; ST has a
+maximum of 4, LOG of 3, and the rest of 2.
 
-Family points per seed (seeds 7 / 11 / 13 / 17):
-
-| Battery | Family | IQ3 | IQ2 | R1 |
+| Battery | Family | IQ3 per seed | IQ2 per seed | R1 |
 |---|---|---|---|---|
-| v6r | ST | 3 / 4 / 4 / 3 | 3 / 3 / 3 / 4 | pass |
-| v6r | LOG | 0 / 0 / 0 / 1 | 0 / 0 / 0 / 1 | fail |
-| v6r | ERR | 2 / 2 / 2 / 2 | 2 / 2 / 2 / 2 | fail |
-| v6r | SYP | 3 / 3 / 3 / 3 | 1 / 3 / 3 / 3 | fail |
-| v6r | PR | 2 / 2 / 2 / 2 | 2 / 2 / 2 / 1 | fail |
-| v6l0 | ST | 4 / 4 / 4 / 4 | 3 / 3 / 3 / 3 | pass |
-| v6l0 | LOG | 2 / 2 / 3 / 2 | 1 / 3 / 3 / 1 | pass |
-| v6l0 | ERR | 2 / 2 / 2 / 2 | 1 / 2 / 2 / 2 | fail |
-| v6l0 | SYP | 3 / 3 / 3 / 3 | 3 / 3 / 3 / 1 | fail |
-| v6l0 | PR | 2 / 2 / 1 / 2 | 0 / 1 / 1 / 1 | pass |
+| v6r | ST | 3 4 4 3 | 3 3 3 4 | pass |
+| v6r | LOG | 0 0 0 1 | 0 0 0 1 | fail |
+| v6r | ERR | 2 2 2 2 | 2 2 2 2 | fail |
+| v6r | SYP | 2 2 2 2 | 0 2 2 2 | fail |
+| v6r | PR | 2 2 2 2 | 1 1 2 1 | pass |
+| v6l0 | ST | 4 4 4 4 | 3 3 3 3 | pass |
+| v6l0 | LOG | 2 2 3 2 | 1 3 3 1 | pass |
+| v6l0 | ERR | 2 2 2 2 | 1 2 2 2 | fail |
+| v6l0 | SYP | 2 2 2 2 | 2 2 2 0 | fail |
+| v6l0 | PR | 2 1 0 2 | 1 0 0 1 | pass |
 
-Outcome: R2 met. LOG level 0 adopted: S05, S16 and S18 now use 5 agents with one nested statement.
+R2 is met: at level 0, LOG separates the quants on the level-0 battery
+(IQ3 wins 2 of 4 seeds, no inversion above one point); at levels 1/2 it
+does not. ST confirms on both batteries, and on v6l0 the gap is exactly
+one point on every seed.
 
-R3 findings:
+Findings:
 
-- S29 (PR) was defective (NOANS) for IQ2 in 4/4 seeds on both batteries, and for IQ3 in 0/4.
-- S20 (SYP) was defective for IQ2 in 3/4 seeds, against IQ3 in 1/4 on v6r and 0/4 on v6l0.
-- LOG at levels 1 and 2 showed a defect inversion. Reasoning-budget cap hits (router budget, `finish_reason` still `stop`) occurred for IQ3 in 2/4 seeds and for IQ2 in 0/4. IQ2 abandoned those items early.
-- On v6r, IQ2 produced zero budget-cap hits. On v6l0, it hit the cap 6 to 7 times with about 17k characters of visible reasoning on easy items. Telemetry flagged two of these as reasoning loops; both were still scored OK.
-
-No-think branch: the endpoint ignores `enable_thinking: false` (the guard aborted the probe because `reasoning_content` was non-empty). It honors `reasoning.effort: none`, but that changes the measured semantics after the fact. The no-think variant was closed as not comparable on this server.
-
-ERR: IQ3 and IQ2 scores were identical on every seed of both batteries. Recorded as zero signal and a review candidate for a future version. No action taken in this change.
+- The prose premise-to-conclusion item S29 (level 2) carries the cleanest
+  defect asymmetry: IQ2 produced no usable answer for S29 on every seed of
+  the level-0 battery and on one v6r seed, IQ3 on none of the sixteen runs.
+  The three v6r seeds where IQ2 did answer S29 carry reasoning-loop flags
+  on those scored-OK turns; IQ3 has no loop flag on S29 anywhere.
+- S30 (prose level 3) has the opposite shape: IQ3 loses it on two v6l0
+  seeds (wrong answer), IQ2 loses it on two seeds of each battery. Noisy
+  either way; it stays at level 3.
+- SYP fails R1 on both batteries. It stays in the battery for one
+  qualitative reason: surface-twin answer inversions appear on IQ2 in 2 of
+  16 runs and on IQ3 in 0 of 16, a defect no other family exposes.
+- ERR is identical between quants on v6r (2 2 2 2 both) and on v6l0 IQ2
+  loses one item on seed 7. It discriminates nothing and is the removal
+  candidate for a future cycle; it is not removed here because doing so
+  breaks comparability with archived runs.
+- Budget behavior inverts with difficulty. On v6r, IQ3 hits the reasoning
+  budget cap 29 times across the four seeds (11, 9, 0, 9) and IQ2 nine
+  times, all on seed 17. On v6l0 the picture flips: IQ2 hits the cap 23
+  times (6, 7, 0, 10) against IQ3 five, with IQ2's hits on easy items,
+  reasoning up to 19k characters and 15 loop flags, 8 of them on scored-OK
+  turns.

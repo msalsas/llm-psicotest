@@ -119,6 +119,9 @@ class TestGeneratorsBattery(unittest.TestCase):
         self.assertEqual(by_slot["S04"].knobs, {"level": 1})
         self.assertEqual(by_slot["S03"].knobs, {"level": 0, "n_distractors": 6})
         self.assertEqual(by_slot["S11"].knobs, {"level": 1})
+        self.assertEqual(by_slot["S05"].knobs, {"level": 0})
+        self.assertEqual(by_slot["S16"].knobs, {"level": 0})
+        self.assertEqual(by_slot["S18"].knobs, {"level": 0})
         for slot in ("S01", "S09", "S15", "S23"):
             self.assertEqual(by_slot[slot].knobs, {"level": 1}, msg=slot)
 

@@ -68,7 +68,7 @@ Exit codes: `0` ok, `1` internal, `2` usage, `3` auth (including missing key), `
 | AR2 | Decimal chain arithmetic | 1 | Multi-operation decimal chain, exact to 2 decimal places |
 | NOOP | Irrelevant-information arithmetic | 3 | Word problem with numeric distractors; one item is the distractor-free mirror of another |
 | CSP | Constraint satisfaction | 2 | Permutation of 7 entities satisfying 14–16 constraints, verified against the constraints, not a stored answer |
-| LOG | Knights, knaves and spy | 3 | Role assignment for 7–8 agents with nested statements, unique solution |
+| LOG | Knights, knaves and spy | 3 | Role assignment for 5 agents with one nested statement, unique solution |
 | CNT | Conditional counting | 1 | Count of words in a 130-word list satisfying four letter/length conditions |
 | ERR | Planted-error detection | 2 | Number of the first erroneous step and the corrected final value in a worked solution with 1 or 3 planted errors |
 | FPRE | False premise | 1 | Correct result when the prompt asserts a wrong intermediate product; adopting it scores `PREMISE_ABSORBED` |

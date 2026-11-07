@@ -6,7 +6,7 @@ Live calibration of the battery against a real quantized model, run on each batt
 
 | Parameter | Value |
 |---|---|
-| Model | Qwen3-8B, quantized IQ3_S |
+| Model | Qwen3.8-Flash-Next GGUF, quantized IQ3_S (with IQ2_XS and UD-Q3_K_XL arms added later) |
 | Serving | OpenAI-compatible endpoint, model alias `iq3_s` |
 | `max_tokens` | 6144 |
 | `temperature` | 0.6 |
@@ -78,7 +78,7 @@ closed by the section "Quant comparison on the final composition" below.
 The decision rules were written down before the extension runs, and the
 extension was made to meet them:
 
-- R1. A family is a quant discriminator on a battery when IQ3 (8B, IQ-series)
+- R1. A family is a quant discriminator on a battery when IQ3 (IQ-series)
   scores above IQ2 in at least 2 of 4 seeds and no seed inverts by more than
   one point.
 - R2. The LOG re-level enters the composition only if LOG passes R1 on the
@@ -205,3 +205,10 @@ Harness findings that qualify the comparison:
   with a 900 s per-turn timeout. Turn-level checkpoint resume (strict
   turn-sequence and message-hash validation) completed the three interrupted
   runs without re-running scored turns.
+
+## Errata
+
+- 2026-11-07: earlier revisions named the tested model as Qwen3-8B.
+  Incorrect: all runs served Qwen3.8-Flash-Next GGUF; server telemetry
+  confirms. The wording of pre-registered rule R1 was corrected accordingly
+  (removing the wrong size tag) without changing its meaning.

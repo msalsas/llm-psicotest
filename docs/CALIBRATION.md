@@ -1,6 +1,6 @@
 # Calibration
 
-Live calibration of the battery against a real quantized model, run on each battery version as it was frozen (v2–v6). The purpose is to check that the battery discriminates at the intended difficulty: a small quantized model should score clearly below the maximum, and failures should concentrate in identifiable families rather than in format or protocol handling.
+Live calibration of the battery against a real quantized model, run on each battery version as it was frozen (v2–v6). The purpose is to check that the battery discriminates at the intended difficulty: a quantized model should score clearly below the maximum, and failures should concentrate in identifiable families rather than in format or protocol handling.
 
 ## Setup
 
@@ -89,7 +89,7 @@ extension was made to meet them:
 - R4. If R1 fails everywhere, the composition freezes at current levels and
   the experiment is archived here.
 
-Setup: same Strata host as every v6 line, quant swapped between runs (one
+Setup: same Strata host as the earlier v6 lines, quant swapped between runs (one
 server at a time). Battery variants: "v6r" (ST re-level only, the baseline
 for this branch) and "v6l0" (v6r plus LOG slots at level 0). Seeds 7, 11,
 13, 17; sixteen full runs. Family points below are the `by_family` values
@@ -180,10 +180,12 @@ Family means (UD-Q3_K_XL / IQ3_S / IQ2_XS):
 | FPRE | 1 | 0.25 | 0.25 | 0.25 |
 
 - ST: UD-Q3_K_XL has full marks on all four seeds.
-- PR: the first configuration in the pilot with full marks on all four seeds.
+- PR: UD-Q3_K_XL is the only configuration with full marks on all four
+  seeds on the final composition (IQ3_S reached 2/2 on every seed only on
+  the v6r battery).
 - LOG: full marks on all four seeds.
 - SYP: IQ2_XS scores 0 on seed 17, which drives its mean.
-- FPRE is unsolved for every configuration to date.
+- FPRE is solved on one seed in four (mean 0.25) by every configuration.
 - AR, AR2, CSP, IV, NOOP and PC: full marks for all three configurations.
 
 Acceptance rule, pre-registered before the runs: the candidate must match or
@@ -212,3 +214,10 @@ Harness findings that qualify the comparison:
   Incorrect: all runs served Qwen3.8-Flash-Next GGUF; server telemetry
   confirms. The wording of pre-registered rule R1 was corrected accordingly
   (removing the wrong size tag) without changing its meaning.
+- 2026-11-07: the final-composition notes said FPRE was unsolved for every
+  configuration; the table shows a 0.25 mean (one seed in four) for all
+  three. They also called UD-Q3_K_XL the first configuration with 4/4 full
+  PR marks; IQ3_S already had that on v6r. The pilot setup said "every v6
+  line" ran on Strata; the UD-Q3_K_XL arm ran on Unsloth Studio. The
+  introduction's "small quantized model" was a leftover of the wrong size
+  claim. All four corrected.

@@ -35,10 +35,12 @@ psicotest run --base-url http://127.0.0.1:8080/v1 --model my-model --seed 7
 | `--order` | `A` | Turn order `A` or `B` (B permutes the item turns) |
 | `--out` | `runs` | Output directory |
 | `--max-tokens` | `6144` | `max_tokens` per request |
-| `--timeout` | `240` | HTTP timeout, seconds |
+| `--timeout` | `240` | HTTP timeout, seconds (reasoning-heavy models may need 600-900) |
 | `--key-env` | `PSICOTEST_API_KEY` | Environment variable holding the key |
 | `--auth` | `bearer` | `bearer` (`Authorization: Bearer`) or `x-api-key` |
 | `--resume` | off | Continue an interrupted run from its checkpoint |
+
+Some servers count reasoning tokens inside `max_tokens` (for example Unsloth Studio). For reasoning-heavy models on such servers the `6144` default can truncate most turns; a calibration run of this kind used `--max-tokens 24576` with `--timeout 900`.
 
 Sampling is fixed at `temperature=0.6`, `top_p=0.95`. Without installing, the same run is available as:
 

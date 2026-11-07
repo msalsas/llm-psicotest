@@ -144,8 +144,9 @@ Run provenance:
 
 - Model: `unsloth/Qwen3.8-Flash-Next-GGUF`, served by Unsloth Studio.
 - Battery: final composition, manifest `f794a595` (ST-L1 + LOG-L0), seeds 7,
-  11, 13 and 17, 38 scored turns each. All four runs are clean (rc=0,
-  manifest hash verified in the run headers).
+  11, 13 and 17, 38 scored turns each (29 capability-scored, the rest
+  protocol turns). All four runs are clean (rc=0, manifest hash verified in
+  the run headers).
 - The Strata comparison runs record manifest `6a56ad80` in their headers, a
   pre-patch registry hash; their prompts are verified level-0 (S05 prompt is
   642 chars against 830 in the original v6, same model and seed), making
@@ -166,13 +167,13 @@ Family means (Unsloth Flash-Next / IQ3_S / IQ2_XL):
 | Family | Max | Unsloth Flash-Next | IQ3_S | IQ2_XL |
 |---|---|---|---|---|
 | ST | 4 | 4.0 | 4.0 | 3.0 |
-| PR | 2 | 2.0 | 1.2 | 0.5 |
-| LOG | 3 | 3.0 | 2.2 | 2.0 |
-| CNT | 1 | 1.0 | 1.0 | 0.2 |
-| IC | 2 | 2.0 | 2.0 | 1.2 |
+| PR | 2 | 2.0 | 1.25 | 0.5 |
+| LOG | 3 | 3.0 | 2.25 | 2.0 |
+| CNT | 1 | 1.0 | 1.0 | 0.25 |
+| IC | 2 | 2.0 | 2.0 | 1.25 |
 | SYP | 2 | 2.0 | 2.0 | 1.5 |
-| ERR | 2 | 2.0 | 2.0 | 1.8 |
-| FPRE | 1 | 0.2 | 0.2 | 0.2 |
+| ERR | 2 | 2.0 | 2.0 | 1.75 |
+| FPRE | 1 | 0.25 | 0.25 | 0.25 |
 
 - ST: Unsloth Flash-Next has full marks on all four seeds.
 - PR: the first model in the pilot with full marks on all four seeds.
@@ -191,7 +192,7 @@ Harness findings that qualify the comparison:
 - Unsloth Studio counts reasoning tokens inside `max_tokens`. At the
   6144-token output budget used for the Strata runs, Qwen3.8-Flash-Next
   filled the entire budget with reasoning and returned empty content
-  (`finish_reason=length`; 22-34 of 39 turns TRUNC per seed). The final
+  (trunc_count 22-34 per seed, `finish_reason=length`). The final
   answer appeared only inside the reasoning text. The clean runs use
   `max_tokens=24576`. Budget-family telemetry is therefore server-dependent
   and not comparable across servers; scoring families are comparable because

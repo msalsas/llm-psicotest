@@ -63,17 +63,17 @@ Constrained prose (PR), cross-turn consistency twins (PC) and interview structur
 
 The battery measures constrained prose, cross-turn consistency and structural prose metrics, but in these runs it has not reproduced the free-form defects this quant shows in casual long conversations: CJK glyph leakage into English text and degradation of sentence structure. Within the battery the model produced no CJK characters and passed every PR, PC and IV item. Whatever triggers those defects in long unstructured chats is not exercised by the current turn structure. A conversational free-form block aimed at them is future work and is not implemented.
 
-## Pending
+## Follow-up: Unsloth A/B (closed)
 
-An A/B run of the Unsloth Q3_K_XL quant of the same base model on the final v6 battery, under the same parameters and seeds.
+Done: the Unsloth A/B ran on the final composition (manifest `f794a595`) with `unsloth/Qwen3.8-Flash-Next-GGUF`, a different model from the originally planned Q3_K_XL quant of the same base model; see [Unsloth Flash-Next A/B on the final composition](#unsloth-flash-next-ab-on-the-final-composition).
 
 ## Re-leveling pilot: LOG to level 0 (November 2026)
 
 Measured 2026-11-03 and 2026-11-04. This is v6 tuning, not a new battery
 generation. The manifest hash remains the strict identity: pre-re-level v6
 starts `a18556a3`, the ST re-level starts `6a56ad80`, and the battery shipped
-with this section starts `f794a595`. The pending Unsloth A/B line above
-stays open.
+with this section starts `f794a595`. The Unsloth A/B line above is
+closed by the section "Unsloth Flash-Next A/B on the final composition" below.
 
 The decision rules were written down before the extension runs, and the
 extension was made to meet them:
@@ -137,3 +137,66 @@ Findings:
   times (6, 7, 0, 10) against IQ3 five, with IQ2's hits on easy items,
   reasoning up to 19k characters and 15 loop flags, 8 of them on scored-OK
   turns.
+
+## Unsloth Flash-Next A/B on the final composition
+
+Run provenance:
+
+- Model: `unsloth/Qwen3.8-Flash-Next-GGUF`, served by Unsloth Studio.
+- Battery: final composition, manifest `f794a595` (ST-L1 + LOG-L0), seeds 7,
+  11, 13 and 17, 38 scored turns each. All four runs are clean (rc=0,
+  manifest hash verified in the run headers).
+- The Strata comparison runs record manifest `6a56ad80` in their headers, a
+  pre-patch registry hash; their prompts are verified level-0 (S05 prompt is
+  642 chars against 830 in the original v6, same model and seed), making
+  them compositionally equivalent to `f794a595`.
+
+Compared against IQ3_S and IQ2_XL on the same seeds. Totals per seed
+(maximum 29):
+
+| Seed | Unsloth Flash-Next | IQ3_S | IQ2_XL |
+|---|---|---|---|
+| 7 | 28 | 27 | 24 |
+| 11 | 28 | 26 | 24 |
+| 13 | 28 | 26 | 22 |
+| 17 | 29 | 28 | 20 |
+
+Family means (Unsloth Flash-Next / IQ3_S / IQ2_XL):
+
+| Family | Max | Unsloth Flash-Next | IQ3_S | IQ2_XL |
+|---|---|---|---|---|
+| ST | 4 | 4.0 | 4.0 | 3.0 |
+| PR | 2 | 2.0 | 1.2 | 0.5 |
+| LOG | 3 | 3.0 | 2.2 | 2.0 |
+| CNT | 1 | 1.0 | 1.0 | 0.2 |
+| IC | 2 | 2.0 | 2.0 | 1.2 |
+| SYP | 2 | 2.0 | 2.0 | 1.5 |
+| ERR | 2 | 2.0 | 2.0 | 1.8 |
+| FPRE | 1 | 0.2 | 0.2 | 0.2 |
+
+- ST: Unsloth Flash-Next has full marks on all four seeds.
+- PR: the first model in the pilot with full marks on all four seeds.
+- LOG: full marks on all four seeds.
+- SYP: IQ2_XL scores 0 on seed 17, which drives its mean.
+- FPRE is unsolved for every model to date.
+- AR, AR2, CSP, IV, NOOP and PC: full marks for all three models.
+
+Acceptance rule, pre-registered before the runs: the candidate must match or
+beat IQ3_S on at least 2 of 4 seeds with no per-seed regression greater
+than 1. The rule is satisfied outright: 4/4 seeds ahead, no regressions.
+Unsloth Flash-Next is the strongest scorer observed on this battery.
+
+Harness findings that qualify the comparison:
+
+- Unsloth Studio counts reasoning tokens inside `max_tokens`. At the
+  6144-token output budget used for the Strata runs, Qwen3.8-Flash-Next
+  filled the entire budget with reasoning and returned empty content
+  (`finish_reason=length`; 22-34 of 39 turns TRUNC per seed). The final
+  answer appeared only inside the reasoning text. The clean runs use
+  `max_tokens=24576`. Budget-family telemetry is therefore server-dependent
+  and not comparable across servers; scoring families are comparable because
+  prompts are byte-identical.
+- Heavy reasoning turns can exceed 300 s at 24k output, so the pilot resumed
+  with a 900 s per-turn timeout. Turn-level checkpoint resume (strict
+  turn-sequence and message-hash validation) completed the three interrupted
+  runs without re-running scored turns.

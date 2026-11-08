@@ -1,7 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#0d1117"/>
+  <style>
+    .bg { fill: #f6f1e7; } .grid { stroke: #c9bfab; } .mark { fill: #1a2332; }
+    @media (prefers-color-scheme: dark) { .bg { fill: #0d1117; } .grid { stroke: #30363d; } .mark { fill: #e6edf3; } }
+  </style>
+  <rect width="512" height="512" rx="96" class="bg"/>
   <!-- scantron grid: uniform 64px spacing, cols x=128..384, rows y=96..416 -->
-  <g fill="none" stroke="#30363d" stroke-width="3">
+  <g class="grid" fill="none" stroke-width="3">
     <circle cx="128" cy="96" r="20"/><circle cx="192" cy="96" r="20"/><circle cx="256" cy="96" r="20"/><circle cx="320" cy="96" r="20"/><circle cx="384" cy="96" r="20"/>
     <circle cx="128" cy="160" r="20"/><circle cx="192" cy="160" r="20"/><circle cx="256" cy="160" r="20"/><circle cx="320" cy="160" r="20"/><circle cx="384" cy="160" r="20"/>
     <circle cx="128" cy="224" r="20"/><circle cx="192" cy="224" r="20"/><circle cx="256" cy="224" r="20"/><circle cx="320" cy="224" r="20"/><circle cx="384" cy="224" r="20"/>
@@ -10,7 +14,7 @@
     <circle cx="128" cy="416" r="20"/><circle cx="192" cy="416" r="20"/><circle cx="256" cy="416" r="20"/><circle cx="320" cy="416" r="20"/><circle cx="384" cy="416" r="20"/>
   </g>
   <!-- filled psi: arms rows 96-224, union row 288, stem rows 352-416 -->
-  <g fill="#e6edf3">
+  <g class="mark">
     <circle cx="128" cy="96" r="20"/><circle cx="128" cy="160" r="20"/><circle cx="128" cy="224" r="20"/>
     <circle cx="384" cy="96" r="20"/><circle cx="384" cy="160" r="20"/><circle cx="384" cy="224" r="20"/>
     <circle cx="128" cy="288" r="20"/><circle cx="192" cy="288" r="20"/><circle cx="256" cy="288" r="20"/><circle cx="320" cy="288" r="20"/><circle cx="384" cy="288" r="20"/>

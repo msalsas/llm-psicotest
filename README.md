@@ -1,7 +1,4 @@
-<table><tr>
-<td width="64" valign="middle"><picture><source media="(prefers-color-scheme: dark)" srcset="./assets/logo-dark.svg"><img src="./assets/logo-light.svg" alt="llm-psicotest logo" width="64" height="64"></picture></td>
-<td valign="middle"><h1 dir="auto">llm-psicotest</h1></td>
-</tr></table>
+# <img src="./assets/logo.svg" alt="llm-psicotest logo" width="64" height="64" align="middle"> llm-psicotest
 
 [![CI](https://github.com/msalsas/llm-psicotest/actions/workflows/ci.yml/badge.svg)](https://github.com/msalsas/llm-psicotest/actions/workflows/ci.yml)
 

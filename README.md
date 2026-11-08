@@ -1,4 +1,6 @@
-# <img src="./assets/logo.svg" alt="llm-psicotest logo" width="64" height="64" align="middle"> llm-psicotest
+<p align="center"><img src="./assets/logo.svg" alt="llm-psicotest logo" width="96" height="96"></p>
+
+# llm-psicotest
 
 [![CI](https://github.com/msalsas/llm-psicotest/actions/workflows/ci.yml/badge.svg)](https://github.com/msalsas/llm-psicotest/actions/workflows/ci.yml)
 

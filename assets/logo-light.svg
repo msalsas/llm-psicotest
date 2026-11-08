@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#f6f1e7"/>
+  <!-- scantron grid: uniform 64px spacing, cols x=128..384, rows y=96..416 -->
+  <g fill="none" stroke="#c9bfab" stroke-width="3">
+    <circle cx="128" cy="96" r="20"/><circle cx="192" cy="96" r="20"/><circle cx="256" cy="96" r="20"/><circle cx="320" cy="96" r="20"/><circle cx="384" cy="96" r="20"/>
+    <circle cx="128" cy="160" r="20"/><circle cx="192" cy="160" r="20"/><circle cx="256" cy="160" r="20"/><circle cx="320" cy="160" r="20"/><circle cx="384" cy="160" r="20"/>
+    <circle cx="128" cy="224" r="20"/><circle cx="192" cy="224" r="20"/><circle cx="256" cy="224" r="20"/><circle cx="320" cy="224" r="20"/><circle cx="384" cy="224" r="20"/>
+    <circle cx="128" cy="288" r="20"/><circle cx="192" cy="288" r="20"/><circle cx="256" cy="288" r="20"/><circle cx="320" cy="288" r="20"/><circle cx="384" cy="288" r="20"/>
+    <circle cx="128" cy="352" r="20"/><circle cx="192" cy="352" r="20"/><circle cx="256" cy="352" r="20"/><circle cx="320" cy="352" r="20"/><circle cx="384" cy="352" r="20"/>
+    <circle cx="128" cy="416" r="20"/><circle cx="192" cy="416" r="20"/><circle cx="256" cy="416" r="20"/><circle cx="320" cy="416" r="20"/><circle cx="384" cy="416" r="20"/>
+  </g>
+  <!-- filled psi: arms rows 96-224, union row 288, stem rows 352-416 -->
+  <g fill="#1a2332">
+    <circle cx="128" cy="96" r="20"/><circle cx="128" cy="160" r="20"/><circle cx="128" cy="224" r="20"/>
+    <circle cx="384" cy="96" r="20"/><circle cx="384" cy="160" r="20"/><circle cx="384" cy="224" r="20"/>
+    <circle cx="128" cy="288" r="20"/><circle cx="192" cy="288" r="20"/><circle cx="256" cy="288" r="20"/><circle cx="320" cy="288" r="20"/><circle cx="384" cy="288" r="20"/>
+    <circle cx="256" cy="352" r="20"/><circle cx="256" cy="416" r="20"/>
+  </g>
+  <!-- answered-correct bubble -->
+  <circle cx="384" cy="96" r="20" fill="#3fb950"/>
+</svg>

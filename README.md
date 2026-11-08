@@ -138,9 +138,9 @@ Scores from different battery versions are not comparable, because each version 
 
 ## Calibration
 
-Live calibration runs used one base model, Qwen3.8-Flash-Next GGUF, at three quantizations: IQ3_S and IQ2_XS served by Strata llama-server, and UD-Q3_K_XL served by Unsloth Studio. The arms differ only in quantization and server.
+Live calibration runs used one base model, Qwen3.8-Flash-Next GGUF, at three quantizations across four deployments on two hosts: IQ3_S and IQ2_XS served by Strata llama-server, and UD-Q3_K_XL and IQ2_XS served by Unsloth Studio. Both Studio arms run with KV cache dtype `q8_0` (operator-reported; `/props` does not expose it). Each arm is defined by its quantization and server; the base model is the same throughout.
 
-On the final v6 composition (manifest `f794a595`, seeds 7, 11, 13 and 17) the mean capability scores are 28.25/29 for UD-Q3_K_XL, 26.75/29 for IQ3_S and 22.50/29 for IQ2_XS.
+On the final v6 composition (manifest `f794a595`, seeds 7, 11, 13 and 17) the mean capability scores are 28.25/29 for UD-Q3_K_XL and 27.50/29 for IQ2_XS on Unsloth Studio, and 26.75/29 for IQ3_S and 22.50/29 for IQ2_XS on Strata llama-server. The two Studio arms are not significantly different at this battery size (McNemar exact p = 0.6875, 6 discordant pairs). The two IQ2_XS numbers are confounded by server and output-budget behavior and should not be read as a quantization effect.
 
 Results for battery versions v2-v6, per-family breakdowns, harness caveats and known limitations are in [docs/CALIBRATION.md](docs/CALIBRATION.md).
 

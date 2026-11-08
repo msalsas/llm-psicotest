@@ -142,11 +142,16 @@ Findings:
 
 Run provenance:
 
-- Model: all three arms serve the same base model, Qwen3.8-Flash-Next GGUF.
-  They differ only in quantization and server: UD-Q3_K_XL served by Unsloth
-  Studio; IQ3_S and IQ2_XS served by Strata llama-server. The Studio
-  `/v1/models` endpoint reports only `unsloth/Qwen3.8-Flash-Next-GGUF`
-  without the quant, so the quant name comes from the bench records.
+- Model: all four arms serve the same base model, Qwen3.8-Flash-Next GGUF.
+  They differ only in quantization and server: UD-Q3_K_XL and one IQ2_XS
+  deployment are served by Unsloth Studio; IQ3_S and a second IQ2_XS
+  deployment run on Strata llama-server. The
+  Studio `/v1/models` endpoint reports only `unsloth/Qwen3.8-Flash-Next-GGUF`
+  without the quant, so for the UD-Q3_K_XL arm the quant name comes from the
+  bench records; the Studio IQ2_XS arm is confirmed via `/props` (see
+  'IQ2_XS on the same Studio host' below).
+- KV cache: both Unsloth Studio arms run with KV cache dtype `q8_0`. This is
+  operator-reported server configuration; `/props` does not expose it.
 - Battery: final composition, manifest `f794a595` (ST-L1 + LOG-L0), seeds 7,
   11, 13 and 17, 38 scored turns each (29 capability-scored, the rest
   protocol turns). All four runs are clean (rc=0, manifest hash verified in
@@ -156,7 +161,8 @@ Run provenance:
   642 chars against 830 in the original v6, same model and seed), making
   them compositionally equivalent to `f794a595`.
 
-Compared against IQ3_S and IQ2_XS on the same seeds. Totals per seed
+Compared against IQ3_S and IQ2_XS (both Strata) on the same seeds. The
+Studio IQ2_XS arm is reported separately below. Totals per seed
 (maximum 29):
 
 | Seed | UD-Q3_K_XL (Studio) | IQ3_S | IQ2_XS |
@@ -191,7 +197,7 @@ Family means (UD-Q3_K_XL / IQ3_S / IQ2_XS):
 Acceptance rule, pre-registered before the runs: the candidate must match or
 beat IQ3_S on at least 2 of 4 seeds with no per-seed regression greater
 than 1. The rule is satisfied outright: 4/4 seeds ahead, no regressions.
-UD-Q3_K_XL is the strongest scorer observed on this battery.
+UD-Q3_K_XL is the strongest scorer observed on this battery by mean.
 
 Harness findings that qualify the comparison:
 
@@ -207,6 +213,83 @@ Harness findings that qualify the comparison:
   with a 900 s per-turn timeout. Turn-level checkpoint resume (strict
   turn-sequence and message-hash validation) completed the three interrupted
   runs without re-running scored turns.
+
+### IQ2_XS on the same Studio host (November 2026)
+
+Measured 2026-11-08. This arm pairs directly against the UD-Q3_K_XL
+reference: same server, same KV-cache configuration, same output budget
+(24576 tokens), and both arms emit visible reasoning on every turn.
+
+Setup:
+
+- Model: Qwen3.8-Flash-Next GGUF, quant IQ2_XS, served by Unsloth Studio
+  under alias `unsloth/Qwen3.8-Flash-Next-GGUF`. The quant is confirmed via
+  `/props` (`model_ftype: IQ2_XS - 2.3125 bpw`), captured before and after
+  every seed; props are byte-identical within each seed.
+- KV cache: `q8_0`, as for the reference arm (operator-reported, not
+  props-verified).
+- Battery: final composition, manifest `f794a595`, order A, seeds 7, 11, 13
+  and 17, 38 scored turns each (29 capability-scored, the rest protocol
+  turns). temp 0.6, top_p 0.95, `max_tokens=24576`, client timeout 900 s.
+- All four runs are clean (rc=0), with no budget-cap hits. Both arms
+  emitted visible reasoning content on all 152 turns of each comparison.
+
+Totals per seed (maximum 29):
+
+| Seed | UD-Q3_K_XL (Studio) | IQ2_XS (Studio) |
+|---|---|---|
+| 7 | 28 | 28 |
+| 11 | 28 | 26 |
+| 13 | 28 | 29 |
+| 17 | 29 | 27 |
+
+Means are 28.25 and 27.5. For orientation only, the same IQ2_XS quant on
+Strata scored 24, 24, 22 and 20 (mean 22.5). That comparison is confounded
+by a different server and by output budget behavior: Strata ran at a
+6144-token budget where reasoning filled the output and truncated content
+(see harness findings above), while these Studio runs used 24576. Reasoning
+was present in both; only its budget regime differs.
+
+Turn-level pairing against the reference (same seed, same prompt sequence),
+upgrades / downgrades of IQ2_XS relative to UD-Q3_K_XL:
+
+| Seed | Upgrades | Downgrades |
+|---|---|---|
+| 7 | 1 | 0 |
+| 11 | 0 | 2 |
+| 13 | 1 | 0 |
+| 17 | 0 | 2 |
+| Pooled | 2 | 4 |
+
+Pairing covers all scored turns. The seed-7 upgrade falls on a protocol
+clarification turn (S17a), which is why the capability total there does not
+move; the remaining flips are all capability-scored.
+
+- One of the four downgrades is infrastructure, not quantization: seed 11
+  turn 18 timed out on its second attempt and was recorded TRUNC.
+- McNemar exact two-sided test on the pooled discordants (2 against 4):
+  no significant difference between the two Studio arms (p = 0.6875; 6
+  discordant pairs, low power). Excluding the infrastructure TRUNC pair
+  leaves 2 upgrades against 3 downgrades, p = 1.0.
+
+Degenerate sentences: IQ2_XS fails `degenerate_sentence` at turn 36 (deep
+context, 71 messages) on seeds 11 and 17. The UD-Q3_K_XL reference has zero
+degenerate-sentence flags across all 152 turns. This is consistent with
+deep-context degradation under the lower-bit quant, though it rests on two
+seeds and a single turn.
+
+Timing: IQ2_XS on Studio took 44-81 min per seed, against 57-440 min for
+the reference arm. Reference-arm timings include interrupted-and-resumed
+runs (see harness findings above), so they are indicative only.
+
+Interpretation:
+
+- Within one server and one reasoning mode, UD-Q3_K_XL and IQ2_XS show no
+  significant difference at this battery size.
+- The clearest quant-associated signal is deep-context sentence
+  degeneration at turn 36.
+- The Strata IQ2_XS gap is not attributable to the quant (see the
+  confounds above).
 
 ## Errata
 

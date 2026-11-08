@@ -146,6 +146,8 @@ On the final v6 composition (manifest `f794a595`, seeds 7, 11, 13 and 17) the me
 
 Results for battery versions v2-v6, per-family breakdowns, harness caveats and known limitations are in [docs/CALIBRATION.md](docs/CALIBRATION.md).
 
+Community-contributed v6 results are collected in [RESULTS.md](RESULTS.md). Pull requests adding rows are welcome if they follow the rules stated there.
+
 ## Repository layout
 
 ```

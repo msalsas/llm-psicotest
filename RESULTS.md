@@ -7,6 +7,7 @@ This table collects runs from contributors against battery v6, so that different
 - Battery v6 only: manifest `f794a595` or a verified compositionally-equivalent manifest. Results from older battery versions belong in the contributor's own notes, not in this table.
 - Standard protocol is seeds 7, 11, 13 and 17 with order A. Any deviation must be visible in the Seeds column. Single-seed rows are accepted but marked, e.g. `7 (single)`.
 - Report the server and every scoring-relevant flag: server name and version if known, context size, KV cache dtype and the `max_tokens` used. On servers that count reasoning tokens inside `max_tokens`, a too-small budget truncates answers and invalidates the score; state what you used.
+- The standard output budget is `--max-tokens 24576` with a client timeout of 900 s, passed explicitly: the CLI default is 6144. Reasoning-heavy models fill a smaller budget with thinking tokens and truncate their answers, which depresses scores independently of model quality; the two Strata rows below ran at 6144 for historical reasons, one marked confounded and the other sharing its regime. Deviate only if you state it in the config notes.
 - One row per arm, an arm being one model + quantization + server combination. A new model is a new row. Do not edit other contributors' rows except to fix an obvious typo.
 - Reviewers may ask for the `report.json` of each run before merging a row. Numbers without a reproducible configuration will not be merged.
 

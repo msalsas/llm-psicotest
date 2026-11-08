@@ -232,7 +232,8 @@ Setup:
   and 17, 38 scored turns each (29 capability-scored, the rest protocol
   turns). temp 0.6, top_p 0.95, `max_tokens=24576`, client timeout 900 s.
 - All four runs are clean (rc=0), with no budget-cap hits. Both arms
-  emitted visible reasoning content on all 152 turns of each comparison.
+  emitted visible reasoning content on all 152 turns of each comparison
+  (verified turn-by-turn in the run records).
 
 Totals per seed (maximum 29):
 
@@ -247,7 +248,7 @@ Means are 28.25 and 27.5. For orientation only, the same IQ2_XS quant on
 Strata scored 24, 24, 22 and 20 (mean 22.5). That comparison is confounded
 by a different server and by output budget behavior: Strata ran at a
 6144-token budget where reasoning filled the output and truncated content
-(see harness findings above), while these Studio runs used 24576. Reasoning
+(see the budget-behavior notes above), while these Studio runs used 24576. Reasoning
 was present in both; only its budget regime differs.
 
 Turn-level pairing against the reference (same seed, same prompt sequence),
@@ -288,8 +289,8 @@ Interpretation:
   significant difference at this battery size.
 - The clearest quant-associated signal is deep-context sentence
   degeneration at turn 36.
-- The Strata IQ2_XS gap is not attributable to the quant (see the
-  confounds above).
+- The Strata IQ2_XS gap cannot be attributed to the quant alone from these
+  data (see the confounds above).
 
 ## Errata
 

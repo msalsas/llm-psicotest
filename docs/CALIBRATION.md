@@ -149,7 +149,7 @@ Run provenance:
   Studio `/v1/models` endpoint reports only `unsloth/Qwen3.8-Flash-Next-GGUF`
   without the quant, so for the UD-Q3_K_XL arm the quant name comes from the
   bench records; the Studio IQ2_XS arm is confirmed via `/props` (see
-  'IQ2_XS on the same Studio host' below).
+  'Standard-budget reruns on both hosts' below).
 - KV cache: both Unsloth Studio arms run with KV cache dtype `q8_0`. This is
   operator-reported server configuration; `/props` does not expose it.
 - Battery: final composition, manifest `f794a595` (ST-L1 + LOG-L0), seeds 7,
@@ -214,7 +214,7 @@ Harness findings that qualify the comparison:
   turn-sequence and message-hash validation) completed the three interrupted
   runs without re-running scored turns.
 
-### IQ2_XS on the same Studio host (November 2026)
+### Standard-budget reruns on both hosts (November 2026)
 
 Measured 2026-11-08. This arm pairs directly against the UD-Q3_K_XL
 reference: same server, same KV-cache configuration, same output budget
@@ -255,10 +255,12 @@ In November the Strata IQ2_XS arm was rerun at the standard budget of 24576
 tokens on manifest `f794a595`. It scored 25, 26, 26 and 25 (mean 25.5), with
 zero truncations and zero budget hits. The rerun removes the truncation
 confound described above but not the server confound. The Strata KV cache
-uses int8 by default, the same 8-bit class as the `q8_0` used on Studio, so
-the KV format is approximately matched. Engine parity is still not
-established, because the Strata server version and context size are not
-recorded and the build does not report its settings at runtime.
+uses int8 by default, the same 8-bit class as the `q8_0` used on Studio, and
+the operator reports the deployment runs with defaults, so the KV format is
+approximately matched. That value is inferred from the default rather than
+read from the server. Engine parity is still not established, because the
+Strata server version and context size are not recorded and the build does
+not report its settings at runtime.
 Against Studio IQ2_XS at the same budget, 11 items were won only on Studio
 and 3 only on Strata (McNemar exact two-sided p = 0.057). That is suggestive
 but not significant at alpha = 0.05 at this battery size. These numbers were
@@ -272,7 +274,7 @@ Against Strata IQ2_XS, same engine and same budget, 11 items were won only by
 IQ3_S and 1 only by IQ2_XS (McNemar exact two-sided p = 0.0063 over 116
 paired capability items). Engine and output budget are held equal as far as
 they are recorded, so the difference is attributable to quantization. It is
-the first significant difference in the table. Each arm is a single run per
+the first significant difference in RESULTS.md. Each arm is a single run per
 seed, so run-to-run variance at fixed settings is not measured, and the
 server version is not recorded for either Strata arm. Against Studio
 UD-Q3_K_XL the discordant items split 1 to 2 (p = 1.0), which is not a
@@ -280,13 +282,13 @@ significant difference, though with three discordant items the test has
 little power to detect one, and engine and quantization both differ. Against
 Studio IQ2_XS they split 5 to 3 (p = 0.73). The IQ2_XS engine residual from
 the previous paragraph (p = 0.057) stands. These numbers were checked against
-the raw reports by the maintainer of this table. Within this section four
-McNemar comparisons pair the same 116 capability items across the four
-standard-budget arms (p = 0.0063, 0.057, 1.0 and 0.73). A Bonferroni
-correction over those four keeps the quantization result significant at 0.05
-(adjusted p = 0.025) and leaves the IQ2_XS engine residual insignificant.
-Other comparisons in this document pair different item sets, so they are not
-part of that family.
+the raw reports by the maintainer of this table. Five McNemar
+comparisons in this document pair the same 116 capability items across the
+four standard-budget arms (p = 0.375, 0.0063, 1.0, 0.73 and 0.057). A
+Bonferroni correction over those five keeps the quantization result
+significant at 0.05 (adjusted p = 0.032) and leaves the IQ2_XS engine
+residual not significant. The turn-level pairing below pairs scored turns
+rather than capability items, so it is not part of that family.
 
 Turn-level pairing against the reference (same seed, same prompt sequence),
 upgrades / downgrades of IQ2_XS relative to UD-Q3_K_XL:
@@ -305,9 +307,10 @@ move; the remaining flips are all capability-scored.
 
 - One of the four downgrades is infrastructure, not quantization: seed 11
   turn 18 timed out on its second attempt and was recorded TRUNC.
-- McNemar exact two-sided test on the pooled discordants (2 against 4):
-  no significant difference between the two Studio arms (p = 0.6875; 6
-  discordant pairs, low power). Excluding the infrastructure TRUNC pair
+- McNemar exact two-sided test on the pooled discordants (2 against 4),
+  pairing 148 scored turns: no significant difference between the two Studio
+  arms (p = 0.6875; 6 discordant pairs, low power). Pairing only the 116
+  capability items splits 4 against 1 in favour of UD-Q3_K_XL (p = 0.375). Excluding the infrastructure TRUNC pair
   leaves 2 upgrades against 3 downgrades, p = 1.0.
 
 Degenerate sentences: IQ2_XS fails `degenerate_sentence` at turn 36 (deep
@@ -324,10 +327,13 @@ Interpretation:
 
 - Within one server and one reasoning mode, UD-Q3_K_XL and IQ2_XS show no
   significant difference at this battery size.
-- The clearest quant-associated signal is deep-context sentence
-  degeneration at turn 36.
-- The Strata IQ2_XS gap cannot be attributed to the quant alone from these
-  data (see the confounds above).
+- The strongest quantization signal is Strata IQ3_S against Strata IQ2_XS at
+  the standard budget (p = 0.0063, adjusted p = 0.032). The clearest
+  single-item symptom is deep-context sentence degeneration at turn 36, seen
+  on the Studio IQ2_XS arm.
+- The October Strata IQ2_XS gap at the 6144-token budget cannot be
+  attributed to the quantization alone (see the confounds above). The
+  standard-budget rerun narrows it to an engine residual (p = 0.057).
 
 ## Errata
 

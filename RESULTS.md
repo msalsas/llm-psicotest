@@ -7,9 +7,9 @@ This table collects runs from contributors against battery v6, so that different
 - Battery v6 only: manifest `f794a595` or a verified compositionally-equivalent manifest. Results from older battery versions belong in the contributor's own notes, not in this table.
 - Standard protocol is seeds 7, 11, 13 and 17 with order A. Any deviation must be visible in the Seeds column. Single-seed rows are accepted but marked, e.g. `7 (single)`.
 - Report the server and every scoring-relevant flag: server name and version if known, context size, KV cache dtype and the `max_tokens` used. On servers that count reasoning tokens inside `max_tokens`, a too-small budget truncates answers and invalidates the score; state what you used.
-- The standard output budget is `--max-tokens 24576` with a client timeout of 900 s, passed explicitly: the CLI default is 6144. Reasoning-heavy models fill a smaller budget with thinking tokens and truncate their answers, which depresses scores independently of model quality; the October Strata runs listed under Superseded runs ran at 6144 for historical reasons. Deviate only if you state it in the config notes.
+- The standard output budget is `--max-tokens 24576` with a client timeout of 900 s, passed explicitly: the CLI default is 6144. Reasoning-heavy models fill a smaller budget with thinking tokens and truncate their answers, which depresses scores independently of model quality; the October Strata runs listed under Superseded runs ran at 6144 for historical reasons. A run at any other output budget is not ranked in the main table: put it under Superseded runs and say which budget it used.
 - One row per arm, an arm being one model + quantization + server combination. A new model is a new row. Do not edit other contributors' rows except to fix an obvious typo.
-- A rerun of an arm at the standard output budget replaces its earlier row: mark the new row as a rerun in Notable outcomes and move the earlier row to Superseded runs. A row that lacks any required config flag (server version, context size, KV cache dtype) must say which ones are missing in its config notes.
+- A rerun of an arm at the standard output budget replaces its earlier row: mark the new row as a rerun in Notable outcomes and move the earlier row to Superseded runs. An arm measured only at a non-standard budget lives under Superseded runs as well. A row that lacks any required config flag (server version, context size, KV cache dtype) must say which ones are missing in its config notes.
 - Reviewers may ask for the `report.json` of each run before merging a row. Numbers without a reproducible configuration will not be merged.
 
 ## Results
@@ -36,4 +36,4 @@ Manifest `6a56ad80`, compositionally equivalent to `f794a595`, order A, seeds 7,
 
 ## Adding a row
 
-Open a pull request that adds one line to the table in mean-score order, keeping the column order above. If your server behaves unusually, for example by counting reasoning tokens inside `max_tokens`, say so in the config notes.
+Open a pull request that adds one row to the main table in mean-score order, keeping the column order above. A rerun at the standard budget also moves that arm's earlier row to Superseded runs. If your server behaves unusually, for example by counting reasoning tokens inside `max_tokens`, say so in the config notes.

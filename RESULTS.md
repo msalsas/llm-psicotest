@@ -27,12 +27,12 @@ All rows in the main table use the same base model, manifest `f794a595` and the 
 
 ### Superseded runs (non-standard output budget)
 
-Manifest `6a56ad80`, compositionally equivalent to `f794a595`, order A, seeds 7, 11, 13 and 17. Not ranked and not item-pairable with the table above: they ran at the CLI default output budget of 6144 tokens, which reasoning-heavy models fill with thinking tokens, truncating answers and depressing scores. Kept as the evidence for that rule. Details in [docs/CALIBRATION.md](docs/CALIBRATION.md).
+Runs superseded by a rerun at the standard budget, or measured only at a non-standard budget. They are not ranked and not item-pairable with the main table; each row states its manifest and budget, and they follow the standard seed protocol in the Rules unless a row says otherwise. Details in [docs/CALIBRATION.md](docs/CALIBRATION.md).
 
 | Date | Quantization | Server | Mean score | Score % | Why superseded | By |
 |---|---|---|---|---:|---|---|
-| 2026-10 | IQ3_S | Strata llama-server | 26.75 / 29 | 92.2% | Reran at the standard budget, 28.00. Server version, context size and KV cache dtype not recorded. Per-seed totals 27/26/26/28. | msalsas |
-| 2026-10 | IQ2_XS | Strata llama-server | 22.50 / 29 | 77.6% | Reran at the standard budget, 25.50. Reasoning filled the 6144-token budget and truncated content. Per-seed totals 24/24/22/20. | msalsas |
+| 2026-10 | IQ3_S | Strata llama-server, 6144 tokens, manifest `6a56ad80` | 26.75 / 29 | 92.2% | Reran at the standard budget, 28.00. Server version, context size and KV cache dtype not recorded. Per-seed totals 27/26/26/28. | msalsas |
+| 2026-10 | IQ2_XS | Strata llama-server, 6144 tokens, manifest `6a56ad80` | 22.50 / 29 | 77.6% | Reran at the standard budget, 25.50. Reasoning filled the 6144-token budget and truncated content. Per-seed totals 24/24/22/20. | msalsas |
 
 ## Adding a row
 

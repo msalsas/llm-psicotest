@@ -149,7 +149,7 @@ Run provenance:
   Studio `/v1/models` endpoint reports only `unsloth/Qwen3.8-Flash-Next-GGUF`
   without the quant, so for the UD-Q3_K_XL arm the quant name comes from the
   bench records; the Studio IQ2_XS arm is confirmed via `/props` (see
-  'Standard-budget reruns on both hosts' below).
+  'IQ2_XS at the standard budget, on both hosts' below).
 - KV cache: both Unsloth Studio arms run with KV cache dtype `q8_0`. This is
   operator-reported server configuration; `/props` does not expose it.
 - Battery: final composition, manifest `f794a595` (ST-L1 + LOG-L0), seeds 7,
@@ -214,10 +214,10 @@ Harness findings that qualify the comparison:
   turn-sequence and message-hash validation) completed the three interrupted
   runs without re-running scored turns.
 
-### Standard-budget reruns on both hosts (November 2026)
+### IQ2_XS at the standard budget, on both hosts (November 2026)
 
-Measured 2026-11-08. This arm pairs directly against the UD-Q3_K_XL
-reference: same server, same KV-cache configuration, same output budget
+Measured 2026-11-08. The Studio IQ2_XS arm pairs directly against the
+UD-Q3_K_XL reference: same server, same KV-cache configuration, same output budget
 (24576 tokens), and both arms emit visible reasoning on every turn.
 
 Setup:
@@ -270,25 +270,28 @@ The Strata IQ3_S arm was rerun the same way at 24576 tokens on manifest
 `f794a595`. It scored 29, 28, 28 and 27 (mean 28.0), with no truncations, no
 budget hits and no degenerate-sentence flags. All four arms at the standard
 budget share manifest `f794a595`, so item-level pairing across them is valid.
-Against Strata IQ2_XS, same engine and same budget, 11 items were won only by
+Against Strata IQ2_XS on the same host and deployment at the same budget, 11 items were won only by
 IQ3_S and 1 only by IQ2_XS (McNemar exact two-sided p = 0.0063 over 116
-paired capability items). Engine and output budget are held equal as far as
-they are recorded, so the difference is attributable to quantization. It is
-the first significant difference in RESULTS.md. Each arm is a single run per
+paired capability items). The two arms share the host, the deployment, the output budget and the
+manifest, and differ in the quantized file, so the difference is
+attributable to quantization within that deployment. Server version and
+context size are unrecorded for both arms, so a difference in them cannot be
+ruled out. It is the first significant difference recorded in this document. Each arm is a single run per
 seed, so run-to-run variance at fixed settings is not measured, and the
 server version is not recorded for either Strata arm. Against Studio
 UD-Q3_K_XL the discordant items split 1 to 2 (p = 1.0), which is not a
 significant difference, though with three discordant items the test has
 little power to detect one, and engine and quantization both differ. Against
-Studio IQ2_XS they split 5 to 3 (p = 0.73). The IQ2_XS engine residual from
-the previous paragraph (p = 0.057) stands. These numbers were checked against
+Studio IQ2_XS they split 5 to 3 (p = 0.73). The Strata-versus-Studio gap for IQ2_XS from the previous paragraph
+(p = 0.057) stands, unattributed. These numbers were checked against
 the raw reports by the maintainer of this table. Five McNemar
 comparisons in this document pair the same 116 capability items across the
 four standard-budget arms (p = 0.375, 0.0063, 1.0, 0.73 and 0.057). A
 Bonferroni correction over those five keeps the quantization result
-significant at 0.05 (adjusted p = 0.032) and leaves the IQ2_XS engine
-residual not significant. The turn-level pairing below pairs scored turns
-rather than capability items, so it is not part of that family.
+significant at 0.05 (adjusted p = 0.032) and leaves the Strata-versus-Studio gap for IQ2_XS not
+significant. Within that family the Studio pair splits 4 against 1 in favour
+of UD-Q3_K_XL (p = 0.375). The turn-level pairing below pairs scored turns
+instead of capability items, so it is not part of that family.
 
 Turn-level pairing against the reference (same seed, same prompt sequence),
 upgrades / downgrades of IQ2_XS relative to UD-Q3_K_XL:
@@ -308,10 +311,10 @@ move; the remaining flips are all capability-scored.
 - One of the four downgrades is infrastructure, not quantization: seed 11
   turn 18 timed out on its second attempt and was recorded TRUNC.
 - McNemar exact two-sided test on the pooled discordants (2 against 4),
-  pairing 148 scored turns: no significant difference between the two Studio
-  arms (p = 0.6875; 6 discordant pairs, low power). Pairing only the 116
-  capability items splits 4 against 1 in favour of UD-Q3_K_XL (p = 0.375). Excluding the infrastructure TRUNC pair
-  leaves 2 upgrades against 3 downgrades, p = 1.0.
+  pairing the 148 turns that carry a 0/1 score in both arms, out of 152 turns
+  per arm: no significant difference between the two Studio arms
+  (p = 0.6875; 6 discordant pairs, low power). Excluding the infrastructure
+  TRUNC pair leaves 2 upgrades against 3 downgrades, p = 1.0.
 
 Degenerate sentences: IQ2_XS fails `degenerate_sentence` at turn 36 (deep
 context, 71 messages) on seeds 11 and 17. The UD-Q3_K_XL reference has zero
@@ -333,7 +336,7 @@ Interpretation:
   on the Studio IQ2_XS arm.
 - The October Strata IQ2_XS gap at the 6144-token budget cannot be
   attributed to the quantization alone (see the confounds above). The
-  standard-budget rerun narrows it to an engine residual (p = 0.057).
+  standard-budget rerun narrows the gap to p = 0.057 without attributing it.
 
 ## Errata
 

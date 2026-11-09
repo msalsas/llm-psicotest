@@ -254,12 +254,32 @@ was present in both; only its budget regime differs.
 In November the Strata IQ2_XS arm was rerun at the standard budget of 24576
 tokens on manifest `f794a595`. It scored 25, 26, 26 and 25 (mean 25.5), with
 zero truncations and zero budget hits. The rerun removes the truncation
-confound described above but not the server confound. The engine comparison
-is still not proven, because the Strata KV cache dtype was not recorded.
+confound described above but not the server confound. The Strata KV cache
+uses int8 by default, the same 8-bit class as the `q8_0` used on Studio, so
+the KV format is approximately matched. Engine parity is still not
+established, because the Strata server version and context size are not
+recorded and the build does not report its settings at runtime.
 Against Studio IQ2_XS at the same budget, 11 items were won only on Studio
 and 3 only on Strata (McNemar exact two-sided p = 0.057). That is suggestive
 but not significant at alpha = 0.05 at this battery size. These numbers were
 checked against the raw reports by the maintainer of this table.
+
+The Strata IQ3_S arm was rerun the same way at 24576 tokens on manifest
+`f794a595`. It scored 29, 28, 28 and 27 (mean 28.0), with no truncations, no
+budget hits and no degenerate-sentence flags. All four arms at the standard
+budget share manifest `f794a595`, so item-level pairing across them is valid.
+Against Strata IQ2_XS, same engine and same budget, 11 items were won only by
+IQ3_S and 1 only by IQ2_XS (McNemar exact two-sided p = 0.0063 over 116
+paired capability items). This isolates the quantization and is the first
+significant difference in the table. Against Studio UD-Q3_K_XL the
+discordant items split 1 to 2 (p = 1.0), statistically indistinguishable,
+though engine and quantization both differ. Against Studio IQ2_XS they split
+5 to 3 (p = 0.73). The IQ2_XS engine residual from the previous paragraph
+(p = 0.057) stands. These numbers were checked against the raw reports by
+the maintainer of this table. Five McNemar comparisons have been made on this
+table (p = 0.6875, 0.057, 0.0063, 1.0 and 0.73); with a Bonferroni correction
+over five tests the quantization result stays significant at 0.05 (adjusted
+p = 0.031), while the IQ2_XS engine residual does not.
 
 Turn-level pairing against the reference (same seed, same prompt sequence),
 upgrades / downgrades of IQ2_XS relative to UD-Q3_K_XL:

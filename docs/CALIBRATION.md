@@ -223,8 +223,9 @@ arms.
 
 ### IQ2_XS at the standard budget, on both hosts (November 2026)
 
-Measured 2026-11-08. The Studio IQ2_XS arm pairs directly against the UD-Q3_K_XL reference:
-same server, same KV-cache configuration, same output budget (24576 tokens).
+Measured 2026-11-08. The Studio IQ2_XS arm pairs directly against the
+UD-Q3_K_XL reference: same server, same KV-cache configuration, same output
+budget (24576 tokens).
 
 Setup:
 
@@ -238,16 +239,16 @@ Setup:
   emitted visible reasoning content on all 152 turns of each comparison.
 
 In November the Strata IQ2_XS arm was rerun at 24576 tokens on manifest
-`f794a595`, with zero truncations and zero budget hits. This removes the budget and manifest differences of the October
-run but not the server confound. The operator reports Strata runs with its defaults, and the
-Strata control project ships int8 KV as its default, the same 8-bit class
-as Studio's `q8_0`; the value is inferred, not read from the server. Engine
-parity is not established: the Strata server version and context size are
-not recorded.
+`f794a595`, with zero truncations and zero budget hits. This removes the
+budget and manifest differences of the October run but not the server
+confound. The operator reports Strata runs with its defaults, and the Strata
+control project ships int8 KV as its default, the same 8-bit class as Studio's
+`q8_0`; the value is inferred, not read from the server. Engine parity is not
+established: the Strata server version and context size are not recorded.
 
-The Strata IQ3_S arm was rerun the same way, with no truncations, budget hits or degenerate-sentence flags. All four
-standard-budget arms share manifest `f794a595`, so item-level pairing across
-them is valid.
+The Strata IQ3_S arm was rerun the same way, with no truncations, budget hits
+or degenerate-sentence flags. All four standard-budget arms share manifest
+`f794a595`, so item-level pairing across them is valid.
 
 Pairing base: the 29 capability-scored slots on 4 seeds, 116 paired items,
 from the per-turn JSONL scoring records (AMBC slot S13 is scored but outside
@@ -310,6 +311,7 @@ Interpretation:
 - 2026-11-07: FPRE was 0.25 for all three configurations, not unsolved; IQ3_S
   had 4/4 full PR marks on v6r first; the UD-Q3_K_XL arm ran on Studio, not Strata.
 - 2026-11-09: McNemar family gained Studio UD-Q3_K_XL against Strata IQ2_XS
-  (six pairs); October Strata runs are neither truncated nor equivalent to `f794a595`.
+  (six pairs); October Strata runs are neither truncated nor equivalent to
+  `f794a595`.
 - 2026-11-09: turn-level pairing base is 152 turns, not 148; the family table
   mixed output budgets and now uses the four standard-budget arms.

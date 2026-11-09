@@ -50,17 +50,17 @@ psicotest run --base-url http://127.0.0.1:8080/v1 --model my-model --seed 7
 | `--auth` | `bearer` | `bearer` (`Authorization: Bearer`) or `x-api-key` |
 | `--resume` | off | Continue an interrupted run from its checkpoint |
 
-Some servers, Unsloth Studio for example, count reasoning tokens inside `max_tokens`. On such servers the `6144` default can truncate most turns of a reasoning-heavy model. A calibration run of this kind used `--max-tokens 24576` with `--timeout 900`.
+Some servers, Unsloth Studio for example, count reasoning tokens inside `max_tokens`. On such servers the `6144` default can truncate most turns of a reasoning-heavy model. Rows in [RESULTS.md](RESULTS.md) use `--max-tokens 24576 --timeout 900`.
 
 Sampling is fixed at `temperature=0.6`, `top_p=0.95`.
 
-Without installing, the same run is available as:
+Without installing:
 
 ```sh
 PSICOTEST_API_KEY=sk-local python3 tools/run_live.py --base-url http://127.0.0.1:8080/v1 --model my-model --seed 7
 ```
 
-`tools/run_live.py` accepts only `--base-url`, `--model`, `--seed`, `--order` and `--out`, with the defaults above for everything else. Run it from the repository root.
+`tools/run_live.py` accepts only `--base-url`, `--model`, `--seed`, `--order` and `--out`, with the defaults above for everything else, so it runs at the 6144 output default and cannot produce a standard-budget row. Run it from the repository root.
 
 Outputs, in `--out`:
 
@@ -115,7 +115,7 @@ Twins (CSP, ST, LOG, AR, PC) share an instance with an earlier slot but use a di
 | Code | Turns | Checked |
 |---|---|---|
 | AMB | 3 ask + 3 reply | Ask turn must be a single clarification for the missing datum (`CLAR_OK` / `CLAR_MISS` / `CLAR_BAD`); the reply turn supplies the datum |
-| AMBC | 1 | The datum looks missing but is derivable; asking scores `CLAR_OVER` |
+| AMBC | 1 | The datum looks missing but is derivable; asking scores `CLAR_OVER` (scored, but outside the /29 capability score) |
 | RCL | 1 | Model lists the rules in force; `rcl_score` is the number of R1, R2, R3 recalled (0-3), clarification-protocol recall is recorded but not scored |
 
 ## Scoring
@@ -136,17 +136,15 @@ The battery is a comparator and a defect detector. It is not a quality gate and 
 
 A valid comparison runs different models, quantizations or servers on the same frozen battery version, with the same seeds and item order. It then compares the capability score and the per-family breakdown.
 
-Scores from different battery versions are not comparable, because each version changes the difficulty of its items. Token-budget telemetry is also not comparable across servers that count reasoning tokens differently; scored families are, because the prompts are byte-identical.
+Scores from different battery versions are not comparable, because each version changes the difficulty of its items. Token-budget telemetry is also not comparable across servers that count reasoning tokens differently. Scored families are comparable only at the same output budget, even though the prompts are byte-identical.
 
 ## Calibration
 
-Live calibration runs used one base model, Qwen3.8-Flash-Next GGUF, at three quantizations across four deployments on two hosts: IQ3_S and IQ2_XS served by Strata llama-server, and UD-Q3_K_XL and IQ2_XS served by Unsloth Studio. Both Studio arms run with KV cache dtype `q8_0` (operator-reported; `/props` does not expose it). Each arm is defined by its quantization and server; the base model is the same throughout.
+Live calibration used one base model, Qwen3.8-Flash-Next GGUF, in four arms: IQ3_S and IQ2_XS on Strata llama-server (int8 KV cache, inferred from its default) and UD-Q3_K_XL and IQ2_XS on Unsloth Studio (KV cache `q8_0`, operator-reported).
 
-On the final v6 composition (manifest `f794a595`, seeds 7, 11, 13 and 17) all four arms ran at the standard output budget of 24576 tokens, so their scores are directly comparable and item-pairable. Mean capability scores are 28.25/29 (97.4%) for UD-Q3_K_XL and 27.50/29 (94.8%) for IQ2_XS on Unsloth Studio, and 28.00/29 (96.6%) for IQ3_S and 25.50/29 (87.9%) for IQ2_XS on Strata llama-server. Strata defaults to an int8 KV cache, the same 8-bit class as the `q8_0` used on Studio; the value is inferred from that default rather than read from the server, and the Strata server version and context size are not recorded.
+On the final v6 composition (manifest `f794a595`, seeds 7, 11, 13 and 17, output budget 24576) mean capability scores are 28.25/29 for UD-Q3_K_XL and 27.50 for IQ2_XS on Studio, and 28.00 for IQ3_S and 25.50 for IQ2_XS on Strata. On the same Strata server, IQ3_S against IQ2_XS splits 11 against 1 discordant items (exact p = 0.0063). The only other pair below the corrected threshold, UD-Q3_K_XL on Studio against IQ2_XS on Strata, also changes server, so it is not read as a quant effect.
 
-One difference in these runs is statistically significant: IQ3_S against IQ2_XS on Strata, where host, deployment, output budget and manifest are shared and only the quantized file differs, splits 11 against 1 discordant capability items (McNemar exact p = 0.0063, still significant after a Bonferroni correction over the five comparisons made on these arms). Nothing else reaches significance, including the Strata-versus-Studio gap for IQ2_XS (p = 0.057) and the two Studio arms (p = 0.375), and each arm is a single run per seed, so run-to-run variance at fixed settings is not measured. Earlier Strata runs at a 6144-token budget score lower for that reason and appear as superseded rows in [RESULTS.md](RESULTS.md). Statistics, pairing bases and caveats are in [docs/CALIBRATION.md](docs/CALIBRATION.md).
-
-Results for battery versions v2-v6, per-family breakdowns, harness caveats and known limitations are in [docs/CALIBRATION.md](docs/CALIBRATION.md).
+Statistics, superseded runs, results for battery versions v2-v6, harness caveats and known limitations are in [docs/CALIBRATION.md](docs/CALIBRATION.md).
 
 Community-contributed v6 results are collected in [RESULTS.md](RESULTS.md). Pull requests adding rows are welcome if they follow the rules stated there.
 

@@ -4,9 +4,11 @@ Live calibration of the battery against a real quantized model, run on each batt
 
 ## Setup
 
+This table covers the v2-v6 IQ3_S pilot lines; the standard-budget runs are set up under [Quant comparison on the final composition](#quant-comparison-on-the-final-composition).
+
 | Parameter | Value |
 |---|---|
-| Model | Qwen3.8-Flash-Next GGUF, quantized IQ3_S (with IQ2_XS and UD-Q3_K_XL arms added later) |
+| Model | Qwen3.8-Flash-Next GGUF, quantized IQ3_S |
 | Serving | OpenAI-compatible endpoint, model alias `iq3_s` |
 | `max_tokens` | 6144 |
 | `temperature` | 0.6 |
@@ -70,10 +72,9 @@ Done: the Unsloth A/B ran on the final composition (manifest `f794a595`) with th
 ## Re-leveling pilot: LOG to level 0 (November 2026)
 
 Measured 2026-11-03 and 2026-11-04. This is v6 tuning, not a new battery
-generation. The manifest hash remains the strict identity: pre-re-level v6
-starts `a18556a3`, the ST re-level starts `6a56ad80`, and the battery shipped
-with this section starts `f794a595`. The Unsloth A/B line above is
-closed by the section "Quant comparison on the final composition" below.
+generation. Pre-re-level v6 starts `a18556a3`, the eight v6l0 runs below
+record `6a56ad80`, and the battery shipped with this section starts
+`f794a595`.
 
 The decision rules were written down before the extension runs, and the
 extension was made to meet them:
@@ -131,50 +132,46 @@ Findings:
   loses one item on seed 7. It discriminates nothing and is the removal
   candidate for a future cycle; it is not removed here because doing so
   breaks comparability with archived runs.
-- Budget behavior inverts with difficulty. On v6r, IQ3 hits the reasoning
-  budget cap 29 times across the four seeds (11, 9, 0, 9) and IQ2 nine
-  times, all on seed 17. On v6l0 the picture flips: IQ2 hits the cap 23
-  times (6, 7, 0, 10) against IQ3 five, with IQ2's hits on easy items,
-  reasoning up to 19k characters and 15 loop flags, 8 of them on scored-OK
-  turns.
+- Budget behavior inverts with difficulty. On v6r, IQ3 hits the output
+  budget 29 times across the four seeds (11, 9, 0, 9) and IQ2 nine
+  times, all on seed 17. On v6l0 the picture flips: IQ2 reaches the output
+  ceiling on 23 turns (6, 7, 0, 10) against IQ3 five (all on seed 7), with
+  IQ2's hits on easy items, reasoning up to 19k characters and 15 loop
+  flags, 8 of them on scored-OK turns. None was recorded as TRUNC.
 
 ## Quant comparison on the final composition
 
 Run provenance:
 
 - Model: all four arms serve the same base model, Qwen3.8-Flash-Next GGUF.
-  They differ only in quantization and server: UD-Q3_K_XL and one IQ2_XS
+  They differ in quantization and server: UD-Q3_K_XL and one IQ2_XS
   deployment are served by Unsloth Studio; IQ3_S and a second IQ2_XS
   deployment run on Strata llama-server. The
   Studio `/v1/models` endpoint reports only `unsloth/Qwen3.8-Flash-Next-GGUF`
   without the quant, so for the UD-Q3_K_XL arm the quant name comes from the
   bench records; the Studio IQ2_XS arm is confirmed via `/props` (see
   'IQ2_XS at the standard budget, on both hosts' below).
-- KV cache: both Unsloth Studio arms run with KV cache dtype `q8_0`. This is
-  operator-reported server configuration; `/props` does not expose it.
+- KV cache: both Unsloth Studio arms run with `q8_0` (operator-reported;
+  `/props` does not expose it).
 - Battery: final composition, manifest `f794a595` (ST-L1 + LOG-L0), seeds 7,
   11, 13 and 17, 38 scored turns each (29 capability-scored, the rest
-  protocol turns). All four runs are clean (rc=0, manifest hash verified in
-  the run headers).
-- The Strata comparison runs record manifest `6a56ad80` in their headers, a
-  pre-patch registry hash; their prompts are verified level-0 (S05 prompt is
-  642 chars against 830 in the original v6, same model and seed), making
-  them compositionally equivalent to `f794a595`.
+  protocol turns). The four UD-Q3_K_XL Studio seeds are clean (rc=0,
+  manifest hash verified in the run headers).
 
-Compared against IQ3_S and IQ2_XS (both Strata) on the same seeds. The
-Studio IQ2_XS arm is reported separately below. Totals per seed
-(maximum 29):
+Compared, by totals and family means only, against the superseded October
+Strata IQ3_S and IQ2_XS runs (see [Superseded runs](#superseded-runs)).
+Totals per seed (maximum 29):
 
-| Seed | UD-Q3_K_XL (Studio, 24576) | IQ3_S (Strata, 6144) | IQ2_XS (Strata, 6144) |
+| Seed | UD-Q3_K_XL (Studio, 24576) | IQ3_S (Strata, 6144, superseded) | IQ2_XS (Strata, 6144, superseded) |
 |---|---|---|---|
 | 7 | 28 | 27 | 24 |
 | 11 | 28 | 26 | 24 |
 | 13 | 28 | 26 | 22 |
 | 17 | 29 | 28 | 20 |
 
-Family means (UD-Q3_K_XL / IQ3_S / IQ2_XS):
+Family means:
 
-| Family | Max | UD-Q3_K_XL (Studio) | IQ3_S | IQ2_XS |
+| Family | Max | UD-Q3_K_XL (Studio) | IQ3_S (superseded) | IQ2_XS (superseded) |
 |---|---|---|---|---|
 | ST | 4 | 4.0 | 4.0 | 3.0 |
 | PR | 2 | 2.0 | 1.25 | 0.5 |
@@ -186,38 +183,50 @@ Family means (UD-Q3_K_XL / IQ3_S / IQ2_XS):
 | FPRE | 1 | 0.25 | 0.25 | 0.25 |
 
 - ST: UD-Q3_K_XL has full marks on all four seeds.
-- PR: UD-Q3_K_XL is the only configuration with full marks on all four
-  seeds on the final composition (IQ3_S reached 2/2 on every seed only on
-  the v6r battery).
+- PR: UD-Q3_K_XL is the only configuration in this table with full marks on
+  all four seeds (IQ3_S reached 2/2 on every seed on the v6r battery).
 - LOG: full marks on all four seeds.
 - SYP: IQ2_XS scores 0 on seed 17, which drives its mean.
-- FPRE is solved on one seed in four (mean 0.25) by every configuration.
+- FPRE is solved on one seed in four (mean 0.25) by all three
+  configurations.
 - AR, AR2, CSP, IV, NOOP and PC: full marks for all three configurations.
 
 Acceptance rule, pre-registered before the runs: the candidate must match or
 beat IQ3_S on at least 2 of 4 seeds with no per-seed regression greater
-than 1. The rule is satisfied outright: 4/4 seeds ahead, no regressions.
-UD-Q3_K_XL is the strongest scorer observed on this battery by mean.
+than 1. Against the superseded IQ3_S run (mean 26.75) UD-Q3_K_XL was ahead
+on all four seeds. Against the standard-budget IQ3_S rerun (mean 28.00) it
+is ahead on seed 17, tied on 11 and 13 and one behind on 7, and the
+item-level difference is not significant (2 v 1, p = 1.0000).
 
 Harness findings that qualify the comparison:
 
-- Unsloth Studio counts reasoning tokens inside `max_tokens`. At the
-  6144-token output budget used for the Strata runs, Qwen3.8-Flash-Next
-  filled the entire budget with reasoning and returned empty content
-  (trunc_count 22-34 per seed, `finish_reason=length`). The final
-  answer appeared only inside the reasoning text. The clean runs use
-  `max_tokens=24576`. Budget-family telemetry is therefore server-dependent
-  and not comparable across servers; scoring families are comparable because
-  prompts are byte-identical.
+- Unsloth Studio counts reasoning tokens inside `max_tokens`, and at 6144
+  tokens the UD-Q3_K_XL arm collapsed (see [Superseded runs](#superseded-runs)),
+  so the clean runs use `max_tokens=24576`. Budget telemetry is therefore
+  not comparable across servers, and scores only at the same output budget.
 - Heavy reasoning turns can exceed 300 s at 24k output, so the pilot resumed
   with a 900 s per-turn timeout. Turn-level checkpoint resume (strict
   turn-sequence and message-hash validation) completed the three interrupted
   runs without re-running scored turns.
 
+### Superseded runs
+
+All ran at 6144 tokens and none is item-pairable with the standard-budget
+arms.
+
+- October Strata (the v6l0 runs above): IQ3_S scored 27, 26, 26 and 28
+  (mean 26.75), IQ2_XS 24, 24, 22 and 20 (mean 22.5). Their headers record
+  manifest stamp `6a56ad80`, which differs from `f794a595`. Zero TRUNC
+  outcomes; ceiling hits are in the budget-behavior finding above.
+- Studio UD-Q3_K_XL probes (`unsloth-final-seed*-trunc6144-invalid`):
+  reasoning filled the budget and content came back empty
+  (`finish_reason=length`), the answer only inside the reasoning.
+  `trunc_count` was 22, 33, 22 and 34 of 38 turns and scores 10, 3, 10 and
+  2 (mean 6.25, against 28.25 at 24576).
+
 ### IQ2_XS at the standard budget, on both hosts (November 2026)
 
-Measured 2026-11-08. RESULTS.md lists the 6144-token runs under Superseded
-runs. The Studio IQ2_XS arm pairs directly against the UD-Q3_K_XL reference:
+Measured 2026-11-08. The Studio IQ2_XS arm pairs directly against the UD-Q3_K_XL reference:
 same server, same KV-cache configuration, same output budget (24576 tokens),
 and both arms emit visible reasoning on every turn.
 
@@ -245,57 +254,52 @@ Totals per seed (maximum 29):
 | 13 | 28 | 29 |
 | 17 | 29 | 27 |
 
-Means are 28.25 and 27.5. For orientation only, the same IQ2_XS quant on
-Strata scored 24, 24, 22 and 20 (mean 22.5). That comparison is confounded
-by a different server and by output budget behavior: Strata ran at a
-6144-token budget where reasoning filled the output and truncated content
-(see the budget-behavior notes above), while these Studio runs used 24576. Reasoning
-was present in both; only its budget regime differs.
+Means are 28.25 and 27.5.
 
-In November the Strata IQ2_XS arm was rerun at the standard budget of 24576
-tokens on manifest `f794a595`. It scored 25, 26, 26 and 25 (mean 25.5), with
-zero truncations and zero budget hits. The rerun removes the truncation
-confound described above but not the server confound. The Strata KV cache
-uses int8 by default, the same 8-bit class as the `q8_0` used on Studio, and
-the operator reports the deployment runs with defaults, so the KV format is
-approximately matched. That value is inferred from the default, resolved by
-presets.py in the Strata control project, rather than read from the server. Engine parity is still not established, because the
-Strata server version and context size are not recorded and the build does
-not report its settings at runtime.
-Against Studio IQ2_XS at the same budget, 11 items were won only on Studio
-and 3 only on Strata (McNemar exact two-sided p = 0.057). That is suggestive
-but not significant at alpha = 0.05 at this battery size. These numbers were
-checked against the raw reports by the maintainer of this table.
+In November the Strata IQ2_XS arm was rerun at 24576 tokens on manifest
+`f794a595`: 25, 26, 26 and 25 (mean 25.5), with zero truncations and zero
+budget hits. This removes the budget and manifest differences of the October
+run but not the server confound. The operator reports Strata runs with its defaults, and the
+Strata control project ships int8 KV as its default, the same 8-bit class
+as Studio's `q8_0`; the value is inferred, not read from the server. Engine
+parity is not established: the Strata server version and context size are
+not recorded.
 
-The Strata IQ3_S arm was rerun the same way at 24576 tokens on manifest
-`f794a595`. It scored 29, 28, 28 and 27 (mean 28.0), with no truncations, no
-budget hits and no degenerate-sentence flags. All four arms at the standard
-budget share manifest `f794a595`, so item-level pairing across them is valid.
-Against Strata IQ2_XS on the same host and deployment at the same budget, 11 items were won only by
-IQ3_S and 1 only by IQ2_XS (McNemar exact two-sided p = 0.0063 over 116
-paired capability items). The two arms share the host, the deployment, the output budget and the
-manifest, and differ in the quantized file, so the difference is
-attributable to quantization within that deployment. Server version and
-context size are unrecorded for both arms, so a difference in them cannot be
-ruled out. It is the first significant difference recorded in this document. Each arm is a single run per
-seed, so run-to-run variance at fixed settings is not measured, and the
-server version is not recorded for either Strata arm. Against Studio
-UD-Q3_K_XL the discordant items split 1 to 2 (p = 1.0), which is not a
-significant difference, though with three discordant items the test has
-little power to detect one, and engine and quantization both differ. Against
-Studio IQ2_XS they split 5 to 3 (p = 0.73). The Strata-versus-Studio gap for IQ2_XS from the previous paragraph
-(p = 0.057) stands, unattributed. These numbers were checked against
-the raw reports by the maintainer of this table. Five McNemar
-comparisons in this document pair the same 116 capability items across the
-four standard-budget arms (p = 0.375, 0.0063, 1.0, 0.73 and 0.057). A
-Bonferroni correction over those five keeps the quantization result
-significant at 0.05 (adjusted p = 0.032) and leaves the Strata-versus-Studio gap for IQ2_XS not
-significant. Within that family the Studio pair splits 4 against 1 in favour
-of UD-Q3_K_XL (p = 0.375). The turn-level pairing below pairs scored turns
-instead of capability items, so it is not part of that family.
+The Strata IQ3_S arm was rerun the same way: 29, 28, 28 and 27 (mean 28.0),
+with no truncations, budget hits or degenerate-sentence flags. All four
+standard-budget arms share manifest `f794a595`, so item-level pairing across
+them is valid.
 
-Turn-level pairing against the reference (same seed, same prompt sequence),
-upgrades / downgrades of IQ2_XS relative to UD-Q3_K_XL:
+Pairing base: the 29 capability-scored slots on 4 seeds, 116 paired items,
+from the per-turn JSONL scoring records (AMBC slot S13 is scored but outside
+the /29). Exact two-sided sign test (McNemar exact) on the discordant items,
+read as items won only by the first arm against items won only by the
+second:
+
+| Pair | Discordant | p |
+|---|---|---|
+| Strata IQ3_S vs Strata IQ2_XS (same server) | 11 v 1 | 0.0063 |
+| Studio UD-Q3_K_XL vs Strata IQ2_XS | 11 v 0 | 0.0010 |
+| Studio IQ2_XS vs Strata IQ2_XS (same quant, two servers) | 11 v 3 | 0.0574 |
+| Studio UD-Q3_K_XL vs Studio IQ2_XS (same server) | 4 v 1 | 0.3750 |
+| Strata IQ3_S vs Studio IQ2_XS | 5 v 3 | 0.7266 |
+| Studio UD-Q3_K_XL vs Strata IQ3_S | 2 v 1 | 1.0000 |
+
+A Bonferroni correction over these six pairs sets the threshold at
+0.05 / 6 = 0.00833, and two pairs clear it. Strata IQ3_S against Strata
+IQ2_XS shares host, deployment, output budget and manifest and differs in
+the quantized file (server version and context size unrecorded for both).
+Studio UD-Q3_K_XL against Strata IQ2_XS changes quantization, server and
+KV-cache provenance at once. Studio UD-Q3_K_XL against Strata IQ3_S has only
+three discordant items, so the test has little power there.
+
+The p-values are indicative, since items within a seed share one
+conversation rather than being independent. Each arm is one run per seed,
+so run-to-run variance is not measured.
+
+Turn-level pairing against the reference (same seed, same prompt sequence;
+scored turns, so outside the six-pair family), upgrades / downgrades of
+IQ2_XS relative to UD-Q3_K_XL:
 
 | Seed | Upgrades | Downgrades |
 |---|---|---|
@@ -330,14 +334,13 @@ runs (see harness findings above), so they are indicative only.
 Interpretation:
 
 - Within one server and one reasoning mode, UD-Q3_K_XL and IQ2_XS show no
-  significant difference at this battery size.
-- The strongest quantization signal is Strata IQ3_S against Strata IQ2_XS at
-  the standard budget (p = 0.0063, adjusted p = 0.032). The clearest
-  single-item symptom is deep-context sentence degeneration at turn 36, seen
-  on the Studio IQ2_XS arm.
-- The October Strata IQ2_XS gap at the 6144-token budget cannot be
-  attributed to the quantization alone (see the confounds above). The
-  standard-budget rerun narrows the gap to p = 0.057 without attributing it.
+  significant difference at this battery size (4 v 1, p = 0.3750).
+- The strongest quantization signal is Strata IQ3_S against Strata IQ2_XS
+  (11 v 1, p = 0.0063), the only pair clearing the threshold with the
+  server held fixed. The clearest single-item symptom is deep-context
+  sentence degeneration at turn 36 on the Studio IQ2_XS arm.
+- Strata IQ2_XS (mean 25.5) against Studio IQ2_XS (mean 27.5) splits 11 v 3
+  (p = 0.0574), not significant.
 
 ## Errata
 
@@ -352,3 +355,8 @@ Interpretation:
   line" ran on Strata; the UD-Q3_K_XL arm ran on Unsloth Studio. The
   introduction's "small quantized model" was a leftover of the wrong size
   claim. All four corrected.
+- 2026-11-09: the McNemar family omitted Studio UD-Q3_K_XL against Strata
+  IQ2_XS (11 v 0, p = 0.0010); it has six pairs, threshold 0.00833. The
+  October Strata runs were called truncated (they record zero TRUNC
+  outcomes, only output-ceiling hits) and compositionally equivalent to
+  `f794a595` (withdrawn). Corrected.

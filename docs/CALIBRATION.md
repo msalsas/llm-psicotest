@@ -270,16 +270,23 @@ budget hits and no degenerate-sentence flags. All four arms at the standard
 budget share manifest `f794a595`, so item-level pairing across them is valid.
 Against Strata IQ2_XS, same engine and same budget, 11 items were won only by
 IQ3_S and 1 only by IQ2_XS (McNemar exact two-sided p = 0.0063 over 116
-paired capability items). This isolates the quantization and is the first
-significant difference in the table. Against Studio UD-Q3_K_XL the
-discordant items split 1 to 2 (p = 1.0), statistically indistinguishable,
-though engine and quantization both differ. Against Studio IQ2_XS they split
-5 to 3 (p = 0.73). The IQ2_XS engine residual from the previous paragraph
-(p = 0.057) stands. These numbers were checked against the raw reports by
-the maintainer of this table. Five McNemar comparisons have been made on this
-table (p = 0.6875, 0.057, 0.0063, 1.0 and 0.73); with a Bonferroni correction
-over five tests the quantization result stays significant at 0.05 (adjusted
-p = 0.031), while the IQ2_XS engine residual does not.
+paired capability items). Engine and output budget are held equal as far as
+they are recorded, so the difference is attributable to quantization. It is
+the first significant difference in the table. Each arm is a single run per
+seed, so run-to-run variance at fixed settings is not measured, and the
+server version is not recorded for either Strata arm. Against Studio
+UD-Q3_K_XL the discordant items split 1 to 2 (p = 1.0), which is not a
+significant difference, though with three discordant items the test has
+little power to detect one, and engine and quantization both differ. Against
+Studio IQ2_XS they split 5 to 3 (p = 0.73). The IQ2_XS engine residual from
+the previous paragraph (p = 0.057) stands. These numbers were checked against
+the raw reports by the maintainer of this table. Within this section four
+McNemar comparisons pair the same 116 capability items across the four
+standard-budget arms (p = 0.0063, 0.057, 1.0 and 0.73). A Bonferroni
+correction over those four keeps the quantization result significant at 0.05
+(adjusted p = 0.025) and leaves the IQ2_XS engine residual insignificant.
+Other comparisons in this document pair different item sets, so they are not
+part of that family.
 
 Turn-level pairing against the reference (same seed, same prompt sequence),
 upgrades / downgrades of IQ2_XS relative to UD-Q3_K_XL:

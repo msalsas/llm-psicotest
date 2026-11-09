@@ -251,6 +251,16 @@ by a different server and by output budget behavior: Strata ran at a
 (see the budget-behavior notes above), while these Studio runs used 24576. Reasoning
 was present in both; only its budget regime differs.
 
+In November the Strata IQ2_XS arm was rerun at the standard budget of 24576
+tokens on manifest `f794a595`. It scored 25, 26, 26 and 25 (mean 25.5), with
+zero truncations and zero budget hits. The rerun removes the truncation
+confound described above but not the server confound. The engine comparison
+is still not proven, because the Strata KV cache dtype was not recorded.
+Against Studio IQ2_XS at the same budget, 11 items were won only on Studio
+and 3 only on Strata (McNemar exact two-sided p = 0.057). That is suggestive
+but not significant at alpha = 0.05 at this battery size. These numbers were
+checked against the raw reports by the maintainer of this table.
+
 Turn-level pairing against the reference (same seed, same prompt sequence),
 upgrades / downgrades of IQ2_XS relative to UD-Q3_K_XL:
 

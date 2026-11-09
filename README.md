@@ -6,7 +6,7 @@
 
 A hard reasoning battery for LLMs served behind an OpenAI-compatible `/chat/completions` endpoint. It is aimed at local servers and quantized models.
 
-Each battery release is frozen; v6 shipped three manifest revisions (`a18556a3`, `6a56ad80`, `f794a595`), and only `f794a595` runs are item-pairable forward. Every item comes from a deterministic generator driven by a seeded RNG, so a given `(battery version, seed, order)` yields byte-identical prompts on any machine. The slot manifest hash is recorded in every run.
+Every item comes from a deterministic generator driven by a seeded RNG, so a given `(slot manifest, seed, order)` yields byte-identical prompts on any machine. Each slot manifest is frozen, and its hash is recorded in every run.
 
 A programmatic checker scores every answer against a computed key. No LLM judge is used anywhere.
 
@@ -136,13 +136,13 @@ The battery is a comparator and a defect detector. It is not a quality gate and 
 
 A valid comparison runs different models, quantizations or servers on the same frozen battery version, with the same seeds and item order. It then compares the capability score and the per-family breakdown.
 
-Scores from different battery versions are not comparable, because each version changes the difficulty of its items. Token-budget telemetry is also not comparable across servers that count reasoning tokens differently. Scores are comparable only at the same output budget: the prompts are byte-identical, the budget is not.
+Scores from different battery versions are not comparable, because each version changes the difficulty of its items. A version can ship more than one slot manifest, and scores and item pairings are comparable only between runs recording the same manifest hash. Token-budget telemetry is also not comparable across servers that count reasoning tokens differently. Scores are comparable only at the same output budget: the prompts are byte-identical, the budget is not.
 
 ## Calibration
 
-Live calibration used one base model, Qwen3.8-Flash-Next GGUF, in four arms: IQ3_S and IQ2_XS on Strata llama-server (int8 KV cache, inferred from its default) and UD-Q3_K_XL and IQ2_XS on Unsloth Studio (KV cache `q8_0`, operator-reported).
+Live calibration used one base model, Qwen3.8-Flash-Next GGUF, in four arms: IQ3_S and IQ2_XS on Strata llama-server and UD-Q3_K_XL and IQ2_XS on Unsloth Studio.
 
-On the final v6 composition (manifest `f794a595`, seeds 7, 11, 13 and 17, output budget 24576) mean capability scores are 28.25/29 for UD-Q3_K_XL and 27.50 for IQ2_XS on Studio, and 28.00 for IQ3_S and 25.50 for IQ2_XS on Strata. On the same Strata server, IQ3_S against IQ2_XS splits 11 against 1 discordant items (exact p = 0.0063), the only significant pair that holds the server fixed.
+On the final v6 composition (seeds 7, 11, 13 and 17, output budget 24576) mean capability scores are 28.25/29 for UD-Q3_K_XL and 27.50 for IQ2_XS on Studio, and 28.00 for IQ3_S and 25.50 for IQ2_XS on Strata. On the same Strata server, IQ3_S against IQ2_XS splits 11 against 1 discordant items (exact p = 0.0063), the only significant pair that holds the server fixed.
 
 Statistics, superseded runs, results for battery versions v2-v6, harness caveats and known limitations are in [docs/CALIBRATION.md](docs/CALIBRATION.md).
 
@@ -162,7 +162,7 @@ tools/
   run_live.py       live run without installing
   gen_golden.py     regenerates tests/golden/*.json
 tests/              unit, property, golden and fake-transport integration tests
-docs/contracts/     implementation contracts (T1–T5E)
+docs/contracts/     implementation contracts
 ```
 
 ## Testing
@@ -179,7 +179,7 @@ Golden files in `tests/golden/` pin the RNG stream and every v6 item. Any change
 
 ## Contracts
 
-`docs/contracts/` holds the implementation contracts each stage was built against: RNG (T1), checkers (T2), rule resurfacing (T2.5), generators (T3), runner (T4), difficulty hardening (T5, T5C, T5E) and the prose block (T5D).
+`docs/contracts/` holds the implementation contracts each stage was built against: RNG, checkers, rule resurfacing, generators, runner, difficulty hardening, the prose block and budget telemetry.
 
 ## License
 

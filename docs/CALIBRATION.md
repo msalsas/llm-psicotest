@@ -165,7 +165,7 @@ Compared against IQ3_S and IQ2_XS (both Strata) on the same seeds. The
 Studio IQ2_XS arm is reported separately below. Totals per seed
 (maximum 29):
 
-| Seed | UD-Q3_K_XL (Studio) | IQ3_S | IQ2_XS |
+| Seed | UD-Q3_K_XL (Studio, 24576) | IQ3_S (Strata, 6144) | IQ2_XS (Strata, 6144) |
 |---|---|---|---|
 | 7 | 28 | 27 | 24 |
 | 11 | 28 | 26 | 24 |
@@ -216,9 +216,10 @@ Harness findings that qualify the comparison:
 
 ### IQ2_XS at the standard budget, on both hosts (November 2026)
 
-Measured 2026-11-08. The Studio IQ2_XS arm pairs directly against the
-UD-Q3_K_XL reference: same server, same KV-cache configuration, same output budget
-(24576 tokens), and both arms emit visible reasoning on every turn.
+Measured 2026-11-08. RESULTS.md lists the 6144-token runs under Superseded
+runs. The Studio IQ2_XS arm pairs directly against the UD-Q3_K_XL reference:
+same server, same KV-cache configuration, same output budget (24576 tokens),
+and both arms emit visible reasoning on every turn.
 
 Setup:
 
@@ -257,8 +258,8 @@ zero truncations and zero budget hits. The rerun removes the truncation
 confound described above but not the server confound. The Strata KV cache
 uses int8 by default, the same 8-bit class as the `q8_0` used on Studio, and
 the operator reports the deployment runs with defaults, so the KV format is
-approximately matched. That value is inferred from the default rather than
-read from the server. Engine parity is still not established, because the
+approximately matched. That value is inferred from the default, resolved by
+presets.py in the Strata control project, rather than read from the server. Engine parity is still not established, because the
 Strata server version and context size are not recorded and the build does
 not report its settings at runtime.
 Against Studio IQ2_XS at the same budget, 11 items were won only on Studio

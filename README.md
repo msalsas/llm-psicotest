@@ -6,7 +6,7 @@
 
 A hard reasoning battery for LLMs served behind an OpenAI-compatible `/chat/completions` endpoint. It is aimed at local servers and quantized models.
 
-Each battery version is frozen. Every item comes from a deterministic generator driven by a seeded RNG, so a given `(battery version, seed, order)` yields byte-identical prompts on any machine. The slot manifest hash is recorded in every run.
+Each battery release is frozen; v6 shipped three manifest revisions (`a18556a3`, `6a56ad80`, `f794a595`), and only `f794a595` runs are item-pairable forward. Every item comes from a deterministic generator driven by a seeded RNG, so a given `(battery version, seed, order)` yields byte-identical prompts on any machine. The slot manifest hash is recorded in every run.
 
 A programmatic checker scores every answer against a computed key. No LLM judge is used anywhere.
 
@@ -50,7 +50,7 @@ psicotest run --base-url http://127.0.0.1:8080/v1 --model my-model --seed 7
 | `--auth` | `bearer` | `bearer` (`Authorization: Bearer`) or `x-api-key` |
 | `--resume` | off | Continue an interrupted run from its checkpoint |
 
-Some servers, Unsloth Studio for example, count reasoning tokens inside `max_tokens`. On such servers the `6144` default can truncate most turns of a reasoning-heavy model. Rows in [RESULTS.md](RESULTS.md) use `--max-tokens 24576 --timeout 900`.
+Some servers, Unsloth Studio for example, count reasoning tokens inside `max_tokens`. On such servers the `6144` default can truncate most turns of a reasoning-heavy model. Main-table rows in [RESULTS.md](RESULTS.md) use `--max-tokens 24576 --timeout 900`.
 
 Sampling is fixed at `temperature=0.6`, `top_p=0.95`.
 
@@ -136,13 +136,13 @@ The battery is a comparator and a defect detector. It is not a quality gate and 
 
 A valid comparison runs different models, quantizations or servers on the same frozen battery version, with the same seeds and item order. It then compares the capability score and the per-family breakdown.
 
-Scores from different battery versions are not comparable, because each version changes the difficulty of its items. Token-budget telemetry is also not comparable across servers that count reasoning tokens differently. Scored families are comparable only at the same output budget, even though the prompts are byte-identical.
+Scores from different battery versions are not comparable, because each version changes the difficulty of its items. Token-budget telemetry is also not comparable across servers that count reasoning tokens differently. Scores are comparable only at the same output budget: the prompts are byte-identical, the budget is not.
 
 ## Calibration
 
 Live calibration used one base model, Qwen3.8-Flash-Next GGUF, in four arms: IQ3_S and IQ2_XS on Strata llama-server (int8 KV cache, inferred from its default) and UD-Q3_K_XL and IQ2_XS on Unsloth Studio (KV cache `q8_0`, operator-reported).
 
-On the final v6 composition (manifest `f794a595`, seeds 7, 11, 13 and 17, output budget 24576) mean capability scores are 28.25/29 for UD-Q3_K_XL and 27.50 for IQ2_XS on Studio, and 28.00 for IQ3_S and 25.50 for IQ2_XS on Strata. On the same Strata server, IQ3_S against IQ2_XS splits 11 against 1 discordant items (exact p = 0.0063). The only other pair below the corrected threshold, UD-Q3_K_XL on Studio against IQ2_XS on Strata, also changes server, so it is not read as a quant effect.
+On the final v6 composition (manifest `f794a595`, seeds 7, 11, 13 and 17, output budget 24576) mean capability scores are 28.25/29 for UD-Q3_K_XL and 27.50 for IQ2_XS on Studio, and 28.00 for IQ3_S and 25.50 for IQ2_XS on Strata. On the same Strata server, IQ3_S against IQ2_XS splits 11 against 1 discordant items (exact p = 0.0063), the only significant pair that holds the server fixed.
 
 Statistics, superseded runs, results for battery versions v2-v6, harness caveats and known limitations are in [docs/CALIBRATION.md](docs/CALIBRATION.md).
 

@@ -277,6 +277,14 @@ The p-values are indicative, since items within a seed share one
 conversation rather than being independent. Each arm is one run per seed,
 so run-to-run variance is not measured.
 
+Per item on that base:
+
+- 98 of 116 items pass on all four arms, 1 fails on all four (S06, seed 11),
+  and 17 split between them.
+- The Strata pair splits 12 items; IQ2_XS's one win (prose S29, seed 17)
+  offsets its loss at twin S30 (seed 13), so the two prose family means stay equal.
+- UD-Q3_K_XL passes 11 of the 12, Studio IQ2_XS 10.
+
 Turn-level pairing of the two Studio arms pairs all 152 scored turns per arm,
 not the 116-item capability base: IQ2_XS has 2 upgrades against 4 downgrades
 relative to UD-Q3_K_XL, exact McNemar p = 0.6875. The seed-7 upgrade falls on
